@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code 8 Drill — ระบบประเมินและวิเคราะห์ผล | Bangkok Hospital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>:root{
+  --navy:#0F2A5F; --navy2:#1C3F86; --red:#D7262E; --red-soft:#FDECEC;
+  --ink:#0F172A; --ink2:#334155; --mute:#64748B; --line:#E2E8F0; --bg:#F4F6FA; --card:#FFFFFF;
+  --pass:#15803D; --pass-soft:#DCFCE7; --warn:#B45309; --warn-soft:#FEF3C7; --fail:#B91C1C; --fail-soft:#FEE2E2;
+  --opd:#2563EB; --ipd:#7C3AED; --ccd:#D7262E;
+  --r:14px; --sh:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Sarabun','Leelawadee UI','Tahoma',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--navy2)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 18px}
+
+/* ---------- header ---------- */
+.top{background:var(--navy);color:#fff;position:sticky;top:0;z-index:40;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.top .wrap{display:flex;align-items:center;gap:14px;min-height:64px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
+.logo{background:#fff;border-radius:10px;padding:5px 9px;display:flex;align-items:center}
+.logo img{height:30px;display:block}
+.brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+.brand p{margin:0;font-size:12.5px;opacity:.8}
+.top .sp{flex:1}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctl label{font-size:12px;opacity:.85}
+.ctl select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:9px;padding:6px 10px;font-weight:600}
+.ctl select option{color:var(--ink)}
+.seg{display:inline-flex;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);border-radius:9px;overflow:hidden}
+.seg button{background:none;border:0;color:#fff;padding:6px 11px;cursor:pointer;font-size:13px;font-weight:600;opacity:.75}
+.seg button.on{background:#fff;color:var(--navy);opacity:1}
+.net{font-size:12.5px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);white-space:nowrap;cursor:pointer}
+.net b{font-weight:700}
+
+/* ---------- tabs ---------- */
+.tabs{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:30}
+.tabs .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs .wrap::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;padding:13px 14px 11px;font-weight:600;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;font-size:14.5px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--navy);border-bottom-color:var(--red)}
+.tab .cnt{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:999px;background:var(--red-soft);color:var(--red);font-size:12px}
+
+main{padding:20px 0 60px}
+.pane{display:none}.pane.on{display:block}
+
+/* ---------- generic ---------- */
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:980px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px}
+.card h3{margin:0 0 2px;font-size:16px}
+.card .sub{margin:0 0 12px;color:var(--mute);font-size:13px}
+.sec-h{display:flex;align-items:flex-end;gap:12px;margin:22px 0 10px;flex-wrap:wrap}
+.sec-h h2{margin:0;font-size:19px}
+.sec-h p{margin:0;color:var(--mute);font-size:13.5px}
+.sec-h .sp{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.btn:hover{border-color:#CBD5E1;background:#F8FAFC}
+.btn.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.pri:hover{background:var(--navy2)}
+.btn.red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink2)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.b-pass{background:var(--pass-soft);color:var(--pass)}
+.b-fail{background:var(--fail-soft);color:var(--fail)}
+.b-warn{background:var(--warn-soft);color:var(--warn)}
+.b-mute{background:#EEF2F7;color:var(--mute)}
+.b-opd{background:#DBEAFE;color:var(--opd)}.b-ipd{background:#EDE9FE;color:var(--ipd)}.b-ccd{background:var(--red-soft);color:var(--ccd)}
+.crit{color:var(--red);font-weight:700}
+.muted{color:var(--mute)}
+.small{font-size:12.5px}
+.note{background:#F1F5FB;border:1px solid #DCE5F3;border-radius:10px;padding:10px 13px;font-size:13.5px;color:var(--ink2)}
+.note.warn{background:var(--warn-soft);border-color:#FCD34D;color:#78350F}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=search],select.inp,textarea{
+  width:100%;border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;background:#fff;outline:none}
+input:focus,select.inp:focus,textarea:focus{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(28,63,134,.12)}
+textarea{min-height:64px;resize:vertical}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:4px}
+.fld .hint{font-size:12px;color:var(--mute);margin-top:3px}
+
+/* ---------- KPI tiles ---------- */
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.kpi .l{font-size:12.5px;color:var(--mute);font-weight:600}
+.kpi .v{font-size:28px;font-weight:800;line-height:1.15;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--mute)}
+.kpi .d{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc,var(--navy))}
+
+/* ---------- charts ---------- */
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font-family:inherit}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin:2px 0 6px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hb{display:grid;grid-template-columns:minmax(120px,38%) 1fr 54px;gap:8px;align-items:center;font-size:13.5px;padding:4px 0}
+.hb .bar{height:12px;background:#EEF2F7;border-radius:6px;overflow:hidden}
+.hb .bar i{display:block;height:100%;border-radius:6px}
+.hb .val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- tables ---------- */
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+table.tbl{border-collapse:collapse;width:100%;font-size:13.5px}
+.tbl th{background:#F8FAFC;text-align:left;font-weight:700;color:var(--ink2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;z-index:1}
+.tbl td{padding:8px 10px;border-bottom:1px solid #EEF2F7;vertical-align:top}
+.tbl tr:hover td{background:#FAFBFD}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl td.c,.tbl th.c{text-align:center}
+.heat{display:inline-block;min-width:46px;text-align:center;border-radius:6px;padding:2px 6px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- unit cards ---------- */
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.unit{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;border-left:4px solid var(--c,#CBD5E1);transition:transform .08s}
+.unit:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+.unit .n{font-weight:700;font-size:14px;line-height:1.3}
+.unit .rs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.unit .r{font-size:12px;border-radius:6px;padding:1px 6px;background:#F1F5F9;font-weight:600;font-variant-numeric:tabular-nums}
+.unit .st{margin-top:7px}
+
+/* ---------- form ---------- */
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.dom{background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-top:14px;overflow:hidden;box-shadow:var(--sh)}
+.dom-h{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;border-left:5px solid var(--dc)}
+.dom-h .t{font-weight:700}
+.dom-h .s{font-size:12.5px;color:var(--mute)}
+.dom-h .sc{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--dc)}
+.item{display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:start;padding:11px 16px;border-top:1px solid #EEF2F7}
+.item.miss{background:#FFF7ED}
+.item .no{font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;padding-top:3px}
+.item .tx{font-size:14.5px}
+.item .tx .cr{color:var(--red);font-size:12px;font-weight:700;margin-left:6px;white-space:nowrap}
+.item details{margin-top:4px}
+.item summary{font-size:12.5px;color:var(--navy2);cursor:pointer;font-weight:600;list-style:none}
+.item summary::-webkit-details-marker{display:none}
+.crit-box{font-size:13px;margin-top:6px;display:grid;gap:5px}
+.crit-box div{padding:6px 9px;border-radius:8px}
+.crit-box .p{background:#F0FDF4;color:#14532D}
+.crit-box .f{background:#FEF2F2;color:#7F1D1D}
+.crit-box .c{background:#FFF1F2;color:#881337;border:1px dashed #FDA4AF}
+.ans{display:flex;gap:5px}
+.ans button{border:1.5px solid #CBD5E1;background:#fff;border-radius:9px;padding:7px 10px;font-weight:700;cursor:pointer;min-width:62px;font-size:13.5px}
+.ans button.p.on{background:var(--pass);border-color:var(--pass);color:#fff}
+.ans button.f.on{background:var(--fail);border-color:var(--fail);color:#fff}
+.ans button.n.on{background:#64748B;border-color:#64748B;color:#fff}
+.ans button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:640px){.item{grid-template-columns:38px 1fr}.ans{grid-column:1/-1}.ans button{flex:1}}
+.scorebar{position:sticky;bottom:0;z-index:25;background:var(--navy);color:#fff;border-radius:14px 14px 0 0;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:18px;box-shadow:0 -6px 18px rgba(15,23,42,.18)}
+.scorebar .blk{display:flex;flex-direction:column;line-height:1.25}
+.scorebar .blk .l{font-size:11.5px;opacity:.75}
+.scorebar .blk .v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.scorebar .sp{flex:1}
+.scorebar .btn{border-color:rgba(255,255,255,.4)}
+.assr{display:grid;grid-template-columns:1fr 1fr 34px;gap:6px;margin-bottom:6px}
+.editbar{background:var(--warn-soft);border:1px solid #FCD34D;color:#78350F;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.scn{background:#FFF7F7;border:1px solid #FBD5D5;border-radius:12px;padding:12px 14px;margin-top:12px}
+
+/* ---------- modal / toast ---------- */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:24px 12px;overflow:auto}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:16px;max-width:920px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal .mh{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal .mh h3{margin:0;font-size:17px;flex:1}
+.modal .mb{padding:16px 18px;max-height:calc(100vh - 170px);overflow:auto}
+.modal .mf{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+
+/* ---------- report (detail + print) ---------- */
+.rep h2{margin:0;font-size:18px}
+.rep .meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 14px;font-size:13.5px;margin:10px 0}
+.rep .meta b{color:var(--ink2)}
+.rep table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.rep th,.rep td{border:1px solid #E2E8F0;padding:5px 8px;text-align:left}
+.rep th{background:#F1F5F9}
+.rep .ok{color:var(--pass);font-weight:700}.rep .no{color:var(--fail);font-weight:700}.rep .na{color:var(--mute)}
+
+footer{border-top:1px solid var(--line);background:#fff;padding:14px 0;font-size:12.5px;color:var(--mute)}
+footer .wrap{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+
+/* ---------- guide / print ---------- */
+.guide h2{font-size:20px;margin:6px 0 6px}
+.guide h3{font-size:16px;margin:18px 0 6px;color:var(--navy)}
+.guide table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 10px;background:#fff}
+.guide th,.guide td{border:1px solid #CBD5E1;padding:6px 8px;vertical-align:top;text-align:left}
+.guide th{background:#EEF2F8}
+.guide .box3{display:inline-block;width:13px;height:13px;border:1.5px solid #475569;border-radius:3px}
+.guide ul{margin:4px 0 8px;padding-left:20px}
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff;font-size:11.5px}
+  .top,.tabs,footer,.no-print,.scorebar,.toast{display:none!important}
+  main{padding:0}
+  .pane{display:none!important}
+  .pane.print{display:block!important}
+  .card,.kpi{box-shadow:none}
+  .print-only{display:block}
+  .guide table{page-break-inside:auto}
+  .guide tr{page-break-inside:avoid}
+  .guide h3{page-break-after:avoid}
+}
+@media(max-width:760px){
+  .top{position:static}
+  .top .wrap{min-height:0;gap:8px}
+  .brand p{display:none}
+  .tabs{top:0}
+  .scorebar{gap:10px;padding:8px 12px}
+  .scorebar .blk.opt{display:none}
+  .scorebar .blk .v{font-size:15px}
+  .scorebar .sp{display:none}
+  .scorebar #fReset{display:none}
+  .scorebar #fSave{flex:1;justify-content:center}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="logo"><img alt="Bangkok Hospital" src="data:image/png;base64,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"></div>
+    <div class="brand">
+      <h1>Code 8 Drill</h1>
+      <p>ระบบประเมิน · วิเคราะห์ผล · เก็บข้อมูลการซ้อมช่วยชีวิต</p>
+    </div>
+    <div class="sp"></div>
+    <div class="ctl">
+      <label for="selYear">ปี</label>
+      <select id="selYear" aria-label="เลือกปี"></select>
+      <div class="seg" id="segScope" role="group" aria-label="กลุ่มรายงาน">
+        <button data-v="NSO" class="on">ฝ่ายการพยาบาล</button>
+        <button data-v="EXTRA">นอกสังกัด</button>
+      </div>
+      <span class="net" id="net" title="สถานะการเชื่อมต่อฐานข้อมูล">⏳ กำลังเชื่อมต่อ…</span>
+    </div>
+  </div>
+</header>
+<nav class="tabs" aria-label="เมนูหลัก">
+  <div class="wrap" id="tabs">
+    <button class="tab on" data-tab="overview">🎯 ภาพรวม</button>
+    <button class="tab" data-tab="ccd">❤️ Critical Care</button>
+    <button class="tab" data-tab="form">📝 ลงคะแนน</button>
+    <button class="tab" data-tab="units">🏥 รายหน่วยงาน</button>
+    <button class="tab" data-tab="items">🔬 รายข้อ</button>
+    <button class="tab" data-tab="data">📁 ข้อมูล</button>
+    <button class="tab" data-tab="guide">📋 Checklist &amp; คู่มือ</button>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <section class="pane on" id="p-overview"></section>
+    <section class="pane" id="p-ccd"></section>
+    <section class="pane" id="p-form"></section>
+    <section class="pane" id="p-units"></section>
+    <section class="pane" id="p-items"></section>
+    <section class="pane" id="p-data"></section>
+    <section class="pane" id="p-guide"></section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>จัดทำโดย ฝ่ายวิชาการพยาบาล และ Clinical Nurse Educator โรงพยาบาลกรุงเทพ สำนักงานใหญ่</span>
+    <span>AHA Guidelines 2025 · แบบฟอร์ม <span id="fv"></span></span>
+  </div>
+</footer>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <div class="mh"><h3 id="mTitle"></h3><button class="btn sm" onclick="closeModal()">✕ ปิด</button></div>
+    <div class="mb" id="mBody"></div>
+    <div class="mf" id="mFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileImport" accept=".json,application/json" multiple hidden>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>/* ============================================================
+   Code 8 Drill — Item definitions, scenarios, departments
+   Item keys of the Core form are kept identical to the 2569 form
+   so records already stored in Firestore resolve correctly.
+   ============================================================ */
+const PASS_MARK = 80, FINAL_ROUND = 3, PTS = 4;
+const FORM_VERSION = 'v2-2569.11';
+
+/* ---------- CORE 28 items (ทุกหน่วยงาน OPD / IPD / CCD) ---------- */
+const CORE_DOMAINS = {
+  1:{ code:'D1', th:'การรับรู้และขอความช่วยเหลือ', en:'Recognition & Emergency Response', color:'#2563EB' },
+  2:{ code:'D2', th:'คุณภาพการกดหน้าอก', en:'High-Quality CPR', color:'#DC2626' },
+  3:{ code:'D3', th:'การช็อกไฟฟ้าและ CPR Coach', en:'AED / Defibrillation & CPR Coach', color:'#0F9D58' },
+  4:{ code:'D4', th:'เปิดเส้น เตรียมยา และ Airway', en:'IV Access, Drug Prep & Airway', color:'#EA7A0C' },
+  5:{ code:'D5', th:'การทำงานเป็นทีม', en:'Team Dynamics & SBAR', color:'#7C3AED' }
+};
+
+/* k = internal key (unchanged), no = display number, d = domain, c = critical */
+const CORE_ITEMS = [
+ {k:'1-1',no:'1.1',d:1,c:true, s:'Scene Safety',
+  t:'ตรวจสอบความปลอดภัยของสถานที่ก่อนเข้าช่วยเหลือ (Scene Safety)',
+  pass:'แสดงพฤติกรรมตรวจ Scene Safety ชัดเจน (มองรอบ / พูด "Scene safe") ก่อนเข้าหาผู้ป่วย',
+  fail:'เข้าหาผู้ป่วยทันทีโดยไม่ตรวจสอบ',
+  ccd:'ICU/CCU/OR: ตรวจสายไฟ น้ำ O₂ และอุปกรณ์รอบเตียง · Aviation: แจ้งลูกเรือ ล็อกเปล ประเมินความปลอดภัยในห้องโดยสาร'},
+ {k:'1-2',no:'1.2',d:1,c:true, s:'Check Responsiveness',
+  t:'ตรวจสอบการตอบสนองของผู้ป่วย (Check Responsiveness) ≤ 10 วินาที',
+  pass:'ตบไหล่ + เรียก + ดูการหายใจ ครบภายใน 10 วินาที',
+  fail:'ใช้เวลาเกิน 10 วินาที หรือทำไม่ครบ 3 ขั้นตอน',
+  ccd:'ผู้ป่วยติด monitor: ยืนยันว่าเป็นผู้ป่วยจริง ไม่ใช่ artifact (ดูผู้ป่วย + สาย lead) ≤10 วินาที · OR ภายใต้ GA: ใช้ pulse / ETCO₂ / arterial line แทนการปลุก'},
+ {k:'1-3',no:'1.3',d:1,c:true, s:'Call Code 8 ≤10s',
+  t:'เรียกขอความช่วยเหลือ / ประกาศ Code 8 ภายใน 10 วินาที',
+  pass:'ประกาศ Code 8 และสั่งนำ Defibrillator ภายใน 10 วินาทีหลังพบผู้ป่วย',
+  fail:'ล่าช้าเกิน 10 วินาที หรือไม่ประกาศ Code 8',
+  ccd:'ICU/OR/ER: เรียกทีมตามระบบของหน่วย · Aviation: แจ้ง cockpit และทีมในเครื่องทันที'},
+ {k:'1-4',no:'1.4',d:1,c:false, s:'Delegate Defib/Cart',
+  t:'สั่งนำ Defibrillator / Crash Cart มาที่เกิดเหตุ โดยระบุชื่อบุคคลและสถานที่',
+  pass:'ระบุชื่อ + สถานที่ เช่น "คุณ___ ไปนำ Defibrillator ที่___ มาทันที"',
+  fail:'สั่งแบบ "ใครก็ได้" หรือไม่ระบุตำแหน่งที่เก็บ', ccd:''},
+ {k:'1-5',no:'1.5',d:1,c:true, s:'Pulse check → CPR ≤10s',
+  t:'ตรวจชีพจรและการหายใจ 5–10 วินาที หากไม่พบเริ่มกดหน้าอกทันที',
+  pass:'Pulse check 5–10 วินาที → ไม่พบ → เริ่ม CPR ทันที',
+  fail:'ตรวจนานเกิน 10 วินาที หรือไม่เริ่ม CPR ทันที', ccd:''},
+
+ {k:'2-1',no:'2.1',d:2,c:true, s:'Hand Placement',
+  t:'ตำแหน่งมือถูกต้อง — ครึ่งล่างกระดูกหน้าอก (Lower half of sternum)',
+  pass:'ส้นมือถูกตำแหน่ง มือประสานกัน แขนตรง ไหล่อยู่เหนือมือ',
+  fail:'มืออยู่บน xiphoid / ซี่โครง / สูงเกินไป', ccd:'ใช้ CPR board หรือโหมด CPR ของเตียง'},
+ {k:'2-2',no:'2.2',d:2,c:true, s:'High-Quality CPR',
+  t:'High-Quality CPR ครบ 4 มิติ ผ่าน CPR Feedback (Depth 5–6 cm · Rate 100–120 · Full recoil · CCF ≥80%)',
+  pass:'ค่าทุกมิติอยู่ในเกณฑ์ตลอดการประเมิน',
+  fail:'มิติใดมิติหนึ่งออกนอกเกณฑ์และไม่ได้รับการแก้ไข',
+  ccd:'ER/Aviation ที่ใช้ Mechanical CPR: ประเมินการติดตั้งเครื่อง หยุดกด ≤10 วินาที และตำแหน่งลูกสูบถูกต้อง'},
+ {k:'2-3',no:'2.3',d:2,c:false, s:'Ratio 30:2 / Async',
+  t:'อัตราส่วน 30:2 (ก่อนใส่ท่อ) / Asynchronous 10 ครั้ง/นาที หลังใส่ท่อ',
+  pass:'อัตราส่วนถูกต้อง และเปลี่ยนโหมดได้ถูกต้องหลังใส่ท่อ',
+  fail:'ยังใช้ 30:2 หลังใส่ท่อ หรือหยุดกดเพื่อช่วยหายใจ', ccd:''},
+ {k:'2-4',no:'2.4',d:2,c:false, s:'BVM Ventilation',
+  t:'BVM ถูกต้อง — E-C technique, mask seal ดี, หน้าอกยกขึ้น, ไม่ over-ventilate',
+  pass:'E-C grip ถูก mask seal ดี หน้าอกยก ไม่ over-ventilate',
+  fail:'mask รั่ว / หน้าอกไม่ขึ้น / ท้องพอง',
+  ccd:'ผู้ป่วยใส่ท่อเดิม: บีบ BVM ผ่าน ETT ด้วย O₂ 100% อัตรา 10 ครั้ง/นาที'},
+ {k:'2-5',no:'2.5',d:2,c:false, s:'Compressor Rotation',
+  t:'สลับผู้กดหน้าอกทุก 2 นาที อย่างราบรื่น ≤10 วินาที ระหว่าง Rhythm check',
+  pass:'สลับเรียบร้อย ≤10 วินาที ระหว่าง rhythm check', fail:'สลับนานเกิน 10 วินาที หรือไม่สลับ', ccd:''},
+
+ {k:'3-1',no:'3.1',d:3,c:true, s:'Defib ready ≤2 min',
+  t:'Defibrillator มาถึงและพร้อมใช้งานภายใน 2 นาทีจากประกาศ Code 8',
+  pass:'Defibrillator พร้อม shock ภายใน 2 นาที', fail:'เกิน 2 นาที หรือทีมไม่รู้ตำแหน่งที่เก็บ',
+  ccd:'ใช้ Manual mode ได้ · ผ่านเมื่อช็อกครั้งแรกภายใน 2 นาทีหลังพบ shockable rhythm'},
+ {k:'3-2',no:'3.2',d:3,c:false, s:'Pad Placement',
+  t:'ติด Pad ถูกตำแหน่ง (Anterolateral หรือ Anteroposterior) ผิวแห้ง',
+  pass:'Pad ถูกตำแหน่ง ผิวแห้ง ไม่มีขน', fail:'ติดสลับ / ผิดตำแหน่ง / ผิวเปียก', ccd:''},
+ {k:'3-3',no:'3.3',d:3,c:true, s:'Clear! ×3',
+  t:'ประกาศ "Clear!" 3 ครั้ง และมั่นใจว่าไม่มีใครสัมผัสผู้ป่วยก่อน shock ทุกครั้ง',
+  pass:'"Clear!" 3 ครั้งชัดเจน มองทีมครบแล้วจึงกด shock', fail:'น้อยกว่า 3 ครั้ง หรือกดโดยไม่มองทีม',
+  ccd:'OR: แจ้งศัลยแพทย์ถอยจาก sterile field · Aviation: O₂ ห่างจาก pad และไม่มีใครสัมผัสเปล/ลำตัวเครื่อง'},
+ {k:'3-4',no:'3.4',d:3,c:false, s:'Resume CPR post-shock',
+  t:'กดหน้าอกต่อทันทีหลัง shock โดยไม่หยุดตรวจชีพจร',
+  pass:'CPR เริ่มทันทีหลัง shock', fail:'หยุดเพื่อตรวจ pulse หรือดูจอก่อน', ccd:''},
+ {k:'3-5',no:'3.5',d:3,c:true, s:'Rhythm check q2min',
+  t:'ตรวจ Rhythm ทุก 2 นาที แจ้งทีมก่อนวิเคราะห์ ไม่มีใครสัมผัสผู้ป่วย',
+  pass:'ทำตามขั้นตอนครบ แจ้งทีมทุกครั้งก่อนวิเคราะห์', fail:'ข้ามการวิเคราะห์ / มีคนสัมผัสผู้ป่วยขณะวิเคราะห์',
+  ccd:'Manual mode: Team Leader ประกาศ rhythm ทุก 2 นาที หยุดกด ≤10 วินาที'},
+ {k:'3-6',no:'3.6',d:3,c:true, s:'CPR Coach role',
+  t:'มอบหมาย CPR Coach ชัดเจน ยืนตำแหน่งที่เห็น Compressor และจอ Feedback',
+  pass:'มอบหมายด้วย Closed-loop และ CPR Coach ยืนเห็นทั้ง Compressor และจอ', fail:'ไม่มีการมอบหมาย หรือยืนมองไม่เห็นจอ',
+  ccd:'Aviation/ทีม ≤3 คน: รวมบทบาทกับ Team Leader ได้ — ผ่านเมื่อ "หน้าที่" ถูกทำครบ'},
+ {k:'3-7',no:'3.7',d:3,c:true, s:'Monitor 4 metrics + feedback',
+  t:'ติดตามค่า CPR real-time ครบ 4 มิติ และให้ Verbal feedback ทันทีเมื่อออกนอกเกณฑ์',
+  pass:'ตอบค่าได้ทันทีเมื่อถูกถาม และให้ feedback ชัดเจนจน Compressor แก้ไขได้', fail:'ไม่ดูค่า / ตอบไม่ได้ / เงียบขณะค่าออกนอกเกณฑ์',
+  ccd:'ใช้ ETCO₂ / arterial line ประกอบการติดตามคุณภาพ CPR ได้'},
+ {k:'3-9',no:'3.8',d:3,c:false, s:'Compressor swap timing',
+  t:'แจ้ง Team Leader ก่อนครบ 2 นาที (~15 วินาที) และประสานการสลับ ≤10 วินาที',
+  pass:'แจ้งล่วงหน้า ~15 วินาที และสลับเสร็จ ≤10 วินาที', fail:'ไม่แจ้งล่วงหน้า หรือสลับนานเกิน 10 วินาที', ccd:''},
+
+ {k:'5-1',no:'4.1',d:4,c:true, s:'IV access ≤5 min',
+  t:'เปิดเส้น IV และเจาะเลือดส่งตรวจสำเร็จภายใน 5 นาที',
+  pass:'IV สำเร็จ + เจาะเลือด ภายใน 5 นาที', fail:'เกิน 5 นาที / เปิดไม่สำเร็จ / ลืมเจาะเลือด',
+  ccd:'มีสายเดิม: ยืนยันว่าใช้ได้ หรือเปิด large-bore / IO ภายใน 5 นาที · Aviation: IV/IO ภายใน 5 นาที (เจาะเลือดเมื่อทำได้)'},
+ {k:'5-2',no:'4.2',d:4,c:false, s:'Drug Preparation',
+  t:'เตรียม Adrenaline 1 mg ถูกต้อง — ไม่ให้ยาโดยไม่มีคำสั่ง',
+  pass:'เตรียมยาถูกต้อง รายงาน Team Leader รอคำสั่ง', fail:'เตรียมผิด dose หรือให้ยาโดยไม่มีคำสั่ง',
+  ccd:'CCD: ให้ยาตามคำสั่งแพทย์ หรือ standing order ของโรงพยาบาลสำหรับ RN ที่ผ่าน ACLS'},
+ {k:'5-3',no:'4.3',d:4,c:false, s:'ETT Equipment',
+  t:'เตรียมอุปกรณ์ใส่ท่อช่วยหายใจครบถ้วนภายใน 5 นาที',
+  pass:'อุปกรณ์ครบ 7 รายการ พร้อมใช้ ภายใน 5 นาที', fail:'ขาดอุปกรณ์ หรือเกิน 5 นาที',
+  ccd:'ผู้ป่วยใส่ท่อเดิม: เตรียมชุด re-intubation + suction พร้อมใช้'},
+ {k:'5-4',no:'4.4',d:4,c:true, s:'ETCO₂ Procedure',
+  t:'ทำ ETCO₂ (Capnography) ครบ 5 ขั้นตอน และอ่าน waveform ยืนยันตำแหน่ง ETT',
+  pass:'ครบ 5 ขั้นตอนตามลำดับ และอ่าน waveform ยืนยันตำแหน่งท่อ', fail:'ขาดขั้นตอนใด โดยเฉพาะ warm-up / calibrate', ccd:''},
+
+ {k:'4-1',no:'5.1',d:5,c:false, s:'Team Leader',
+  t:'มี Team Leader ชัดเจน ประกาศบทบาทภายใน 30 วินาทีแรก',
+  pass:'ประกาศบทบาทและมอบหมายทีมภายใน 30 วินาที', fail:'ไม่มี Team Leader ชัดเจน', ccd:''},
+ {k:'4-2',no:'5.2',d:5,c:false, s:'Role Assignment',
+  t:'มอบหมายบทบาทครบ: Compressor / Ventilator / Defib Operator / Timekeeper',
+  pass:'ครบทุกบทบาท ทุกคนยืนยันด้วย Closed-loop', fail:'ไม่ครบ / ซ้ำซ้อน / ไม่มีการยืนยัน',
+  ccd:'Aviation ทีม 2–3 คน: ผ่านเมื่อ "หน้าที่" ครบ แม้คนเดียวทำหลายบทบาท'},
+ {k:'4-3',no:'5.3',d:5,c:true, s:'Closed-loop',
+  t:'ใช้ Closed-loop Communication ทุกครั้งที่สั่งการ',
+  pass:'ทุกคำสั่งครบ 3 ขั้น: สั่ง → ทวน → ยืนยัน', fail:'มีคำสั่งที่ไม่ได้ทวนหรือไม่ยืนยัน',
+  ccd:'Aviation: ใช้ headset หรือสัญญาณมือในที่เสียงดัง'},
+ {k:'4-4',no:'5.4',d:5,c:false, s:'Constructive Intervention',
+  t:'ทีมกล้าบอกเมื่อเห็นข้อผิดพลาด และรับฟังด้วยความเคารพ',
+  pass:'มีการบอกข้อผิดพลาดอย่างสุภาพ ทีมรับฟัง', fail:'ไม่มีใครบอก หรือทีมปฏิเสธ', ccd:''},
+ {k:'4-5',no:'5.5',d:5,c:false, s:'Timeline Recording',
+  t:'Recorder บันทึก timeline ถูกต้อง: เริ่ม CPR / Shock / ยา / Rhythm check',
+  pass:'บันทึกครบ เวลาคลาดไม่เกิน 30 วินาที', fail:'ไม่ครบ หรือเวลาผิดเกิน 30 วินาที', ccd:''},
+ {k:'4-6',no:'5.6',d:5,c:true, s:'SBAR Handoff',
+  t:'รายงาน SBAR ครบ S+B+A+R ภายใน 60 วินาที',
+  pass:'ครบ 4 ส่วน ชัดเจน ภายใน 60 วินาที', fail:'ขาดองค์ประกอบ หรือไม่ชัดเจน',
+  ccd:'CCD: รายงานแพทย์ / ACLS Leader ที่มาถึง หรือทีมรับช่วงต่อ · Aviation: รายงาน medical control / โรงพยาบาลปลายทาง'}
+];
+
+/* ---------- ACLS MODULE 18 items (เฉพาะ Critical Care) ---------- */
+const ACLS_DOMAINS = {
+  A:{ code:'A', th:'Rhythm & Manual Defibrillation', color:'#B91C1C' },
+  B:{ code:'B', th:'Medications', color:'#0E7490' },
+  C:{ code:'C', th:'Airway & Physiologic Monitoring', color:'#4338CA' },
+  D:{ code:'D', th:'Leadership & Reversible Causes', color:'#A16207' },
+  E:{ code:'E', th:'ROSC & Post-Cardiac Arrest Care', color:'#15803D' }
+};
+/* na: 'lt3shock' = N/A อัตโนมัติเมื่อ scenario ไม่ถึงช็อกครั้งที่ 3 และไม่ใช่ Torsades */
+const ACLS_ITEMS = [
+ {k:'A1',no:'A1',d:'A',c:true, s:'Rhythm identification',
+  t:'ระบุ Rhythm ถูกต้อง (VF / pVT / PEA / Asystole / Torsades) และประกาศให้ทีมทราบ โดยหยุดกดไม่เกิน 10 วินาที',
+  pass:'Team Leader ประกาศ rhythm ถูกต้องทุกครั้ง หยุดกด ≤10 วินาที', fail:'อ่าน rhythm ผิด หรือหยุดกดนานกว่า 10 วินาทีเพื่ออ่าน'},
+ {k:'A2',no:'A2',d:'A',c:true, s:'Pre-charge / peri-shock pause',
+  t:'Charge เครื่องระหว่างที่ยังกดหน้าอก และหยุดกดรอบการช็อกไม่เกิน 10 วินาที',
+  pass:'Charge ขณะยังกด หยุดเฉพาะช่วง clear–shock แล้วกดต่อภายใน ≤10 วินาที', fail:'หยุดกดรอ charge หรือ peri-shock pause เกิน 10 วินาที'},
+ {k:'A3',no:'A3',d:'A',c:false, s:'Mode & energy',
+  t:'เลือกโหมด Unsynchronized และพลังงานถูกต้องตามเครื่อง (Biphasic ตามคำแนะนำผู้ผลิต / ไม่ทราบให้ใช้สูงสุด)',
+  pass:'โหมดและพลังงานถูกต้อง เพิ่มพลังงานตาม protocol ของหน่วย', fail:'ใช้ Sync mode ใน VF/pVT หรือพลังงานผิด'},
+ {k:'A4',no:'A4',d:'A',c:false, s:'Pulse check on organized rhythm',
+  t:'คลำชีพจรเฉพาะเมื่อพบ organized rhythm (PEA / ROSC) ใช้เวลาไม่เกิน 10 วินาที',
+  pass:'คลำชีพจรเฉพาะ organized rhythm ≤10 วินาที', fail:'คลำชีพจรใน VF/Asystole หรือคลำนานเกิน 10 วินาที'},
+
+ {k:'B1',no:'B1',d:'B',c:true, s:'Epinephrine timing',
+  t:'Epinephrine 1 mg IV/IO ถูกจังหวะ: VF/pVT ให้หลังช็อกครั้งที่ 2 · PEA/Asystole ให้ทันทีที่มีเส้น',
+  pass:'ให้ถูกจังหวะตาม rhythm', fail:'ให้ก่อนกำหนดใน shockable หรือล่าช้าเกินรอบ CPR แรกหลังพบ non-shockable'},
+ {k:'B2',no:'B2',d:'B',c:false, s:'Epinephrine q3–5 min',
+  t:'Epinephrine ซ้ำทุก 3–5 นาที โดย Recorder แจ้งเวลาล่วงหน้า',
+  pass:'ซ้ำทุก 3–5 นาที ตรงเวลา', fail:'ซ้ำเร็ว/ช้ากว่ากำหนด หรือไม่มีการแจ้งเวลา'},
+ {k:'B3',no:'B3',d:'B',c:false, na:'lt3shock', s:'Antiarrhythmic',
+  t:'ยาต้านหัวใจเต้นผิดจังหวะถูกต้อง: VF/pVT ดื้อหลังช็อกครั้งที่ 3 → Amiodarone 300 mg (ซ้ำ 150 mg) หรือ Lidocaine 1–1.5 mg/kg · Torsades → MgSO₄ 1–2 g IV',
+  pass:'ชนิด ขนาด และจังหวะถูกต้อง', fail:'ไม่ให้เมื่อมีข้อบ่งชี้ หรือขนาด/จังหวะผิด'},
+ {k:'B4',no:'B4',d:'B',c:true, s:'Right drug/dose/route',
+  t:'ให้ยาถูกชนิด–ขนาด–ทาง ด้วย Closed-loop (ทวนก่อนให้ และแจ้งเมื่อให้แล้ว) ไม่มี medication error',
+  pass:'ทุกครั้งที่ให้ยามีการทวนและยืนยัน ไม่มีความคลาดเคลื่อน', fail:'มี medication error หรือให้ยาโดยไม่ทวน/ไม่ยืนยัน'},
+ {k:'B5',no:'B5',d:'B',c:false, s:'Flush & elevate',
+  t:'Push ยาแล้ว flush NSS 20 mL + ยกแขน (peripheral line) และบันทึกเวลา',
+  pass:'Flush + ยกแขน + บันทึกเวลาทุกครั้ง', fail:'ไม่ flush / ไม่บันทึกเวลา'},
+
+ {k:'C1',no:'C1',d:'C',c:false, s:'Advanced airway w/o long pause',
+  t:'ใส่ Advanced airway โดยหยุดกดไม่เกิน 10 วินาที (พยาบาลเตรียมและช่วย)',
+  pass:'หยุดกด ≤10 วินาที หรือไม่ต้องหยุด', fail:'หยุดกดเกิน 10 วินาทีระหว่างใส่ท่อ'},
+ {k:'C2',no:'C2',d:'C',c:false, s:'ETCO₂-guided CPR',
+  t:'ใช้ ETCO₂ (และ arterial line ถ้ามี) ติดตามคุณภาพ CPR — แจ้งค่า และปรับการกดเมื่อ ETCO₂ < 10 mmHg',
+  pass:'มีการรายงานค่าและปรับคุณภาพการกดตามค่า', fail:'ไม่ใช้ค่า หรือไม่ตอบสนองเมื่อ ETCO₂ ต่ำ'},
+ {k:'C3',no:'C3',d:'C',c:false, s:'Ventilation & DOPE',
+  t:'ช่วยหายใจหลังมี advanced airway: O₂ 100% 10 ครั้ง/นาที ไม่ hyperventilate · ผู้ป่วยใส่ท่อเดิมตรวจ DOPE',
+  pass:'อัตราและ O₂ ถูกต้อง และตรวจ DOPE เมื่อมีข้อบ่งชี้', fail:'Hyperventilate หรือไม่ตรวจหาปัญหาท่อ/เครื่อง'},
+
+ {k:'D1',no:'D1',d:'D',c:true, s:'H\'s & T\'s',
+  t:'ไล่หาสาเหตุ H\'s & T\'s อย่างเป็นระบบ และแก้ไขสาเหตุที่ scenario กำหนดได้ถูกต้อง',
+  pass:'ระบุสาเหตุและดำเนินการแก้ไขถูกต้อง', fail:'ไม่ไล่หาสาเหตุ หรือแก้ไขไม่ถูกต้อง'},
+ {k:'D2',no:'D2',d:'D',c:false, s:'Summarize & anticipate',
+  t:'Team Leader สรุปสถานการณ์และแผน 2 นาทีถัดไปทุก Rhythm check',
+  pass:'สรุปทุกรอบ ทีมรู้แผนถัดไป', fail:'ไม่สรุป ทีมไม่รู้ขั้นตอนถัดไป'},
+ {k:'D3',no:'D3',d:'D',c:false, s:'Nurse anticipation',
+  t:'พยาบาลเตรียมยา/อุปกรณ์รอบถัดไปไว้ล่วงหน้า (ยาครั้งถัดไป, defib, ยา/เลือดตามสาเหตุ)',
+  pass:'เตรียมพร้อมก่อนถึงเวลา', fail:'เตรียมเมื่อถูกสั่งเท่านั้น ทำให้ล่าช้า'},
+ {k:'D4',no:'D4',d:'D',c:false, s:'Cognitive aid',
+  t:'ใช้ Cognitive aid (ACLS algorithm card / checklist) ระหว่างการช่วยชีวิต',
+  pass:'มีการใช้ cognitive aid อย่างเหมาะสม', fail:'ไม่มีหรือไม่ใช้ cognitive aid'},
+
+ {k:'E1',no:'E1',d:'E',c:false, s:'Recognize ROSC',
+  t:'รู้จัก ROSC (ETCO₂ เพิ่มขึ้นทันที / ชีพจรกลับ / arterial waveform) ยืนยันด้วย pulse check และหยุด CPR เหมาะสม',
+  pass:'ระบุ ROSC ได้ถูกต้องและรวดเร็ว', fail:'ไม่รู้จัก ROSC หรือหยุด CPR โดยไม่ยืนยัน'},
+ {k:'E2',no:'E2',d:'E',c:false, s:'Post-ROSC bundle',
+  t:'เริ่ม Post-ROSC care: SpO₂ 92–98%, ไม่ hyperventilate (PaCO₂ 35–45), MAP ≥ 65 mmHg, 12-lead ECG, glucose, ประเมิน temperature control / consult',
+  pass:'เริ่มครบตามรายการภายใน 10 นาทีหลัง ROSC', fail:'ขาดองค์ประกอบสำคัญ'}
+];
+
+/* ---------- Scenario bank (ทุก scenario เริ่มด้วย VF/pVT เพื่อให้ Core 28 ข้อใช้ได้ครบเหมือน OPD/IPD) ---------- */
+const SCENARIOS = [
+ {k:'ICU-01',set:'ICU',shocks:3,tdp:false,t:'VF ในผู้ป่วย AKI ใส่เครื่องช่วยหายใจ — Hyperkalemia',
+  path:'VF → ช็อก ×3 → Amiodarone → แก้ K⁺ สูง (Calcium, Insulin + Glucose ตามแผนการรักษา) → ROSC'},
+ {k:'ICU-02',set:'ICU',shocks:2,tdp:false,t:'VF → PEA จากท่อช่วยหายใจเลื่อน (Hypoxia)',
+  path:'VF → ช็อก ×2 → PEA → ตรวจ DOPE พบท่อเลื่อน → ใส่ท่อใหม่ ยืนยันด้วย ETCO₂ → ROSC'},
+ {k:'CCU-01',set:'CCU',shocks:3,tdp:false,t:'pVT หลัง Anterior STEMI (Coronary thrombosis)',
+  path:'pVT → ช็อก ×3 → Amiodarone 300 mg → ROSC → 12-lead ECG พบ STE → เตรียม Cath Lab'},
+ {k:'CCU-02',set:'CCU',shocks:1,tdp:false,t:'VF หลังทำ PCI → PEA จาก Cardiac tamponade',
+  path:'VF → ช็อก ×1 → PEA → POCUS พบ pericardial effusion → เตรียม pericardiocentesis → ROSC'},
+ {k:'OR-01',set:'OR',shocks:2,tdp:false,t:'VF ระหว่างผ่าตัด → PEA จากเสียเลือดมาก (Hypovolemia)',
+  path:'VF → ช็อก ×2 → PEA → แจ้งศัลยแพทย์ห้ามเลือด + Massive transfusion → ROSC'},
+ {k:'OR-02',set:'OR',shocks:2,tdp:true,t:'Torsades de pointes ระหว่าง GA (QT ยาว / Mg ต่ำ)',
+  path:'Polymorphic VT (Torsades) → ช็อก ×2 (unsynchronized) → MgSO₄ 1–2 g IV → ROSC'},
+ {k:'ER-01',set:'ER',shocks:3,tdp:false,t:'VF นอกโรงพยาบาล รับจาก EMS พร้อม Mechanical CPR',
+  path:'Handover ขณะ CPR → ย้ายเครื่อง mechanical CPR → VF → ช็อก ×3 → Amiodarone → ROSC → 12-lead พบ STE'},
+ {k:'ER-02',set:'ER',shocks:1,tdp:false,t:'ผู้ป่วยบาดเจ็บ: VF → PEA จาก Tension pneumothorax',
+  path:'VF → ช็อก ×1 → PEA → ตรวจพบ tension pneumothorax → Needle decompression → ROSC'},
+ {k:'AVI-01',set:'AVI',shocks:3,tdp:false,t:'VF บนอากาศยาน (ทีม 2–3 คน)',
+  path:'VF → แจ้ง cockpit → Mechanical CPR → ช็อก ×3 (ยืนยันความปลอดภัยอากาศยาน) → Amiodarone → ROSC → ประสานโรงพยาบาลปลายทาง'},
+ {k:'AVI-02',set:'AVI',shocks:2,tdp:false,t:'VF → PEA จากท่อหลุดระหว่างลำเลียง (Hypoxia)',
+  path:'VF → ช็อก ×2 → PEA → ตรวจ DOPE พบท่อหลุด → จัดการ airway + ETCO₂ → ROSC'}
+];
+const SETTINGS = { ICU:'ICU', CCU:'CCU', OR:'OR', ER:'ER', AVI:'Aviation' };
+
+/* ---------- Departments ---------- */
+const CCD_UNITS = [
+  {n:'ICU2',set:'ICU'},{n:'ICU3',set:'ICU'},{n:'ICU6-7-8',set:'ICU'},
+  {n:'CCU1',set:'CCU'},{n:'CCU2+ICCU',set:'CCU'},
+  {n:'OR BGH',set:'OR'},{n:'OR BIH',set:'OR'},{n:'OR BHT',set:'OR'},
+  {n:'ER',set:'ER'},{n:'Aviation',set:'AVI'}
+];
+/* ชื่อเดิมในระบบ 2569 → หน่วย CCD ใหม่ (ใช้จัดกลุ่มข้อมูลเก่า) */
+const CCD_ALIAS = {
+  'icu6':'ICU6-7-8','icu7':'ICU6-7-8','icu8':'ICU6-7-8','icu6-7-8':'ICU6-7-8','icu678':'ICU6-7-8',
+  'ccu1-sur':'CCU1','ccu1':'CCU1','ccu2-med':'CCU2+ICCU','ccu2':'CCU2+ICCU','iccu':'CCU2+ICCU','ccu2+iccu':'CCU2+ICCU',
+  'orbgh3d':'OR BGH','orbgh':'OR BGH','orbih':'OR BIH','orheart':'OR BHT','orbht':'OR BHT',
+  'emergency':'ER','er':'ER','aviation':'Aviation','icu2':'ICU2','icu3':'ICU3'
+};
+const IPD_UNITS = ['Nursery','Ward 4BIH-N2','Ward 4BIH-S1','Ward 4BIH-S2','Ward 4I','Ward 4TCH','Ward 4W',
+ 'Ward 5BIH-N1','Ward 5BIH-N2','Ward 5BIH-S1','Ward 5BIH-S2','Ward 5H','Ward 5I','Ward 5TCH (จิตเวช)','Ward 5W',
+ 'Ward 6BIH-N1','Ward 6BIH-N2','Ward 6BIH-S1','Ward 6BIH-S2','Ward 6D1-2 (Ped)','Ward 6H','Ward 6I','Ward 6TCH','Ward 6W',
+ 'Ward 7TCH','Ward 8C','Ward 8TCH','Ward 9D','Ward 10D','Ward 11D','Ward 12D','Ward 14D','Ward 16D'];
+const PED_CRITICAL = ['ICU1 (Ped)','NICU'];   // วิกฤตเด็ก — ใช้ Core เท่านั้น (ไม่ใช้ ACLS Module ผู้ใหญ่)
+const OPD_UNITS = ['Allergy & Asthma Center','Ambulatory Chemotherapy Care','AMS','BASEM','Breast Clinic','Cardiac Imaging',
+ 'Cardiovascular Clinic / CVT Center','Cath Lab','Chest Center','Dental Center','Dermatology / Beauty Center','DM Center',
+ 'Ear Nose Throat Center / Hearing','Endoscopic Unit','Eye Center','Fertility Clinic','GI & Liver Center','HBO','HDC',
+ 'Heart Clinic / Cardiac Center','Hemodialysis Unit','Hip and Knee Center','IMS','JMS Clinic / Checkup','Kidney Center',
+ 'Labour Room','Longevity Center','Medical Oncology Center','Mental Health & Rehab (BMRC) / Special Clinic',
+ 'Neuroscience Center + Integrated','Occupational Medicine Center / Staff Clinic','Orthopedic Unit','Pediatrics Unit',
+ 'Plastic Surgery','Radiotherapy / Oncology Imaging & Nuclear Medicine','Rehabilitation Center','Special Cardiac Center',
+ 'Spine Academy','Supportive Care Center','Surgery Unit','Surgical Oncology','Urology Center',"Women's Health Center",'X-Ray Department'];
+const EXTRA_UNITS = ['แผนกกายภาพบำบัด','แผนกรังสีวิทยา','แผนกเภสัชกรรม','แผนกโภชนาการ'];
+
+const ASSESSOR_TEAM = [
+  {name:'สุนิสา ขันธสะอาด',role:'Nurse Manager'},
+  {name:'อัษฎางค์พร หมอนวัน',role:'Clinical Nurse Educator'},
+  {name:'นรินทร์ ปิงปอง',role:'Clinical Nurse Educator'},
+  {name:'ชูแสง พูลผล',role:'Clinical Nurse Educator'},
+  {name:'เยาวพา กล่ำเหว่า',role:'Clinical Nurse Educator'},
+  {name:'ทิพยา โชคตระกูล',role:'Clinical Nurse Educator'},
+  {name:'จีราภรณ์ ตระกูลไตรพฤกษ์',role:'Nursing Professional Trainer'},
+  {name:'สุพัตรา ดวงแก้ว',role:'Nursing Professional Trainer'},
+  {name:'ศิรประภา ชมบัวทอง',role:'RN5'},
+  {name:'กรณิการ์ ลิงค์',role:'RN5'}
+];
+const ASSESSOR_ROLES = ['Nurse Manager','Clinical Nurse Educator','Nursing Professional Trainer','RN5'];
+
+const EXTRA_CHECKS = [
+  {key:'cart', label:'การตรวจสอบมาตรฐานการเช็ค Emergency Cart', short:'Emergency Cart',
+   hint:'ยา/อุปกรณ์ครบตาม checklist · ซีลไม่ขาด · ไม่มีของหมดอายุ · มีลายมือชื่อผู้ตรวจประจำวัน'},
+  {key:'defib', label:'การตรวจเช็ค Defibrillator', short:'Defibrillator',
+   hint:'self-test ผ่าน · แผ่นนำไฟฟ้าไม่หมดอายุ · แบตเตอรี่พร้อม · มีบันทึกการตรวจประจำวัน'}
+];
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDZEBV6xSoD3OBmliRecRwAQ8jc0miojmc",
+  authDomain: "bh-code8-drill.firebaseapp.com",
+  projectId: "bh-code8-drill",
+  storageBucket: "bh-code8-drill.firebasestorage.app",
+  messagingSenderId: "326687540720",
+  appId: "1:326687540720:web:789d104fb1cdbb9f124935"
+};
+const COLLECTION = 'drills';
+</script>
+<script>'use strict';
+/* ============================================================
+   Code 8 Drill — unified app (score · analyse · store)
+   Data: Firebase Firestore collection "drills" (same as 2569 system)
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_MF=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const BE=y=>y+543;
+const GROUPS=['OPD','IPD','CCD'];
+const GCOL={OPD:'#2563EB',IPD:'#7C3AED',CCD:'#D7262E'};
+const GNAME={OPD:'OPD ผู้ป่วยนอก',IPD:'IPD ผู้ป่วยใน',CCD:'CCD วิกฤต'};
+const LS={cache:'c8x_cache_v2',queue:'c8x_queue_v2',delq:'c8x_delq_v2',trash:'c8x_trash_v2',ui:'c8x_ui_v2'};
+
+function fmtDate(d,long){ const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})/); if(!m) return d||'-';
+  return long? (+m[3])+' '+TH_MF[+m[2]-1]+' '+BE(+m[1]) : (+m[3])+' '+TH_M[+m[2]-1]+' '+String(BE(+m[1])).slice(2); }
+const pad2=n=>String(n).padStart(2,'0');
+const isoDate=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const hhmm=d=>pad2(d.getHours())+':'+pad2(d.getMinutes());
+const avg=a=>{a=a.filter(v=>v!=null&&!isNaN(v)); return a.length? a.reduce((s,v)=>s+ +v,0)/a.length : null;};
+const median=a=>{a=a.filter(v=>v!=null&&!isNaN(v)).map(Number).sort((x,y)=>x-y); if(!a.length) return null; const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+const f0=v=>v==null?'–':Math.round(v)+'%';
+const mmss=s=>s==null||isNaN(s)?'–':Math.floor(s/60)+':'+pad2(Math.round(s%60));
+const parseMMSS=v=>{ v=String(v||'').trim(); if(!v) return null; const m=v.match(/^(\d{1,3})(?::(\d{1,2}))?$/); if(!m) return NaN; return m[2]==null? +m[1] : (+m[1])*60+(+m[2]); };
+function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+
+/* ---------------- unit helpers ---------------- */
+const wkey=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,'').replace(/[‐‑‒–—]/g,'-');
+const CCD_SET=Object.fromEntries(CCD_UNITS.map(u=>[wkey(u.n),u]));
+function canonUnit(n){ const k=wkey(n); if(CCD_ALIAS[k]) return CCD_ALIAS[k]; if(CCD_SET[k]) return CCD_SET[k].n; return String(n||'ไม่ระบุ').trim(); }
+function unitGroup(n){ const c=canonUnit(n); if(CCD_SET[wkey(c)]) return 'CCD';
+  if(/^(ccu\d*|iccu|icu\d*|nicu)\b/i.test(c)||/^or\b/i.test(c)) return 'CCD';
+  if(/^ward/i.test(c)||/^nursery$/i.test(c)) return 'IPD'; return 'OPD'; }
+const unitSetting=n=>{ const u=CCD_SET[wkey(canonUnit(n))]; return u?u.set:null; };
+const isAcls=n=>!!unitSetting(n);
+const scopeOf=r=>r&&r.scope==='EXTRA'?'EXTRA':'NSO';
+const rYear=r=>parseInt(String(r.date||'').slice(0,4),10)||null;
+const rRound=r=>{ const m=String(r.round||'').match(/(\d+)/); return m?+m[1]:1; };
+const roundLabel=n=>n===1?'ครั้งที่ 1 (ปกติ)':'ครั้งที่ '+n+' (ซ่อม)';
+const CORE_BY=Object.fromEntries(CORE_ITEMS.map(i=>[i.k,i]));
+const ACLS_BY=Object.fromEntries(ACLS_ITEMS.map(i=>[i.k,i]));
+const SCN_BY=Object.fromEntries(SCENARIOS.map(s=>[s.k,s]));
+const DOM_MAX={1:20,2:20,3:32,4:16,5:24};
+
+/* ---------------- scoring ---------------- */
+function scoreSet(items,ans){
+  let e=0,m=0,na=0,answered=0; const crit=[],doms={},naItems=[];
+  for(const it of items){ const a=ans&&ans[it.k]; const d=doms[it.d]||(doms[it.d]={e:0,m:0});
+    if(a==='pass'){e+=PTS;m+=PTS;d.e+=PTS;d.m+=PTS;answered++;}
+    else if(a==='fail'){m+=PTS;d.m+=PTS;answered++; if(it.c) crit.push(it.k);}
+    else if(a==='na'){na++;answered++;naItems.push(it.k);}
+  }
+  return {e,m,na,naItems,answered,total:items.length,crit,doms,pct:answered===0?null:(m===0?100:Math.round(e/m*100))};
+}
+const SC=new WeakMap();
+function sc(r){
+  let c=SC.get(r); if(c) return c;
+  const s=r.scores||{}; let core;
+  if(Object.keys(s).length){ core=scoreSet(CORE_ITEMS,s); }
+  else { core={e:+r.got||0,m:+r.effectiveTotal||112,na:0,naItems:[],answered:0,total:28,crit:r.criticalFailed||[],doms:{},pct:null,legacy:true};
+    const dg=r.domainGot||{}; for(const d in DOM_MAX) core.doms[d]={e:+dg[d]||0,m:DOM_MAX[d]}; }
+  if(r.pct!==undefined&&r.pct!==null&&r.pct!==''&&!isNaN(+r.pct)) core.pct=+r.pct;   // ใช้ค่าที่บันทึก (รองรับการแก้ไขคะแนนใน Dashboard เดิม)
+  let acls=null;
+  if(r.acls&&r.acls.scores&&Object.keys(r.acls.scores).length) acls=scoreSet(ACLS_ITEMS,r.acls.scores);
+  const corePass=core.pct!=null&&core.pct>=PASS_MARK, aclsPass=acls?acls.pct>=PASS_MARK:null;
+  c={core,acls,corePass,aclsPass,pass:corePass&&(acls?aclsPass:true)};
+  SC.set(r,c); return c;
+}
+
+/* ---------------- state ---------------- */
+const UI=lsGet(LS.ui,{});
+const S={all:[],year:null,scope:UI.scope||'NSO',grp:UI.grp||'ALL',tab:UI.tab||'overview',online:false,db:null,
+  lastSync:null,itemsMode:'1',unitQ:'',unitSort:'name',showUndrilled:false,dataQ:'',dataRound:'',dataMonth:'',ccdMode:'1'};
+function saveUI(){ lsSet(LS.ui,{scope:S.scope,grp:S.grp,tab:S.tab}); }
+
+/* ---------------- Firestore ---------------- */
+function cleanForCloud(r){ const o=Object.assign({},r); delete o._docId; delete o.attachments; delete o._pending; return o; }
+function initFB(){
+  try{
+    if(!window.firebase||!firebase.firestore) throw new Error('Firebase SDK not loaded');
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    S.db=firebase.firestore();
+    S.db.collection(COLLECTION).onSnapshot(snap=>{
+      S.all=snap.docs.map(d=>Object.assign({},d.data(),{_docId:d.id}));
+      S.online=true; S.lastSync=new Date();
+      overlayQueue(); lsSet(LS.cache,{t:Date.now(),recs:S.all.map(cleanForCacheRec)}); onData();
+    },err=>{ console.error(err); S.online=false; setNet(); toast('⚠️ เชื่อมต่อฐานข้อมูลไม่ได้ — แสดงข้อมูลที่เก็บไว้ในเครื่อง'); });
+  }catch(e){ console.warn(e); S.online=false; setNet(); }
+}
+function cleanForCacheRec(r){ const o=Object.assign({},r); delete o.attachments; return o; }
+function overlayQueue(){
+  const q=lsGet(LS.queue,[]), dq=lsGet(LS.delq,[]);
+  for(const rec of q){ const i=S.all.findIndex(x=>String(x.id)===String(rec.id)); const v=Object.assign({},rec,{_docId:String(rec.id),_pending:true});
+    if(i>=0) S.all[i]=v; else S.all.push(v); }
+  if(dq.length) S.all=S.all.filter(x=>dq.indexOf(String(x._docId||x.id))<0);
+}
+function queueSet(rec){ const q=lsGet(LS.queue,[]).filter(x=>String(x.id)!==String(rec.id)); q.push(cleanForCloud(rec)); lsSet(LS.queue,q); }
+function queueDrop(id){ lsSet(LS.queue,lsGet(LS.queue,[]).filter(x=>String(x.id)!==String(id))); }
+function writeRec(rec){
+  rec._savedAt=new Date().toISOString();
+  queueSet(rec);
+  const i=S.all.findIndex(x=>String(x.id)===String(rec.id)); const local=Object.assign({},rec,{_docId:String(rec.id),_pending:true});
+  if(i>=0) S.all[i]=local; else S.all.push(local);
+  onData();
+  if(!S.db||!navigator.onLine){ toast('📴 บันทึกในเครื่องแล้ว — จะซิงก์อัตโนมัติเมื่อออนไลน์'); return Promise.resolve(false); }
+  return S.db.collection(COLLECTION).doc(String(rec.id)).set(cleanForCloud(rec))
+    .then(()=>{ queueDrop(rec.id); setNet(); return true; })
+    .catch(err=>{ console.error(err); toast('⚠️ ซิงก์ไม่สำเร็จ — เก็บเข้าคิวแล้ว จะลองใหม่อัตโนมัติ'); setNet(); return false; });
+}
+function deleteRec(r){
+  const id=String(r._docId||r.id);
+  const tr=lsGet(LS.trash,[]); tr.unshift(Object.assign({},cleanForCloud(r),{_deletedAt:Date.now()})); lsSet(LS.trash,tr.slice(0,100));
+  S.all=S.all.filter(x=>String(x._docId||x.id)!==id); queueDrop(r.id); onData();
+  if(!S.db||!navigator.onLine){ const dq=lsGet(LS.delq,[]); dq.push(id); lsSet(LS.delq,dq); toast('ลบในเครื่องแล้ว — จะลบบน Cloud เมื่อออนไลน์'); return; }
+  S.db.collection(COLLECTION).doc(id).delete().then(()=>toast('🗑 ลบแล้ว (กู้คืนได้จากถังขยะในหน้า ข้อมูล)')).catch(e=>toast('⚠️ ลบบน Cloud ไม่สำเร็จ: '+e.message));
+}
+function flushQueue(manual){
+  const q=lsGet(LS.queue,[]), dq=lsGet(LS.delq,[]);
+  if(!q.length&&!dq.length){ if(manual) toast('✅ ไม่มีรายการค้าง ข้อมูลซิงก์ครบแล้ว'); return; }
+  if(!S.db||!navigator.onLine){ if(manual) toast('📴 ยังออฟไลน์ — จะซิงก์ให้อัตโนมัติเมื่อกลับมาออนไลน์'); return; }
+  q.forEach(rec=>S.db.collection(COLLECTION).doc(String(rec.id)).set(rec).then(()=>{queueDrop(rec.id);setNet();}).catch(()=>{}));
+  dq.forEach(id=>S.db.collection(COLLECTION).doc(id).delete().then(()=>{lsSet(LS.delq,lsGet(LS.delq,[]).filter(x=>x!==id));setNet();}).catch(()=>{}));
+  if(manual) toast('⏳ กำลังซิงก์ '+(q.length+dq.length)+' รายการ…');
+}
+function setNet(){
+  const el=$('#net'); const n=lsGet(LS.queue,[]).length+lsGet(LS.delq,[]).length;
+  if(!navigator.onLine||!S.db&&!S.online){ el.innerHTML='🔴 <b>ออฟไลน์</b> · ข้อมูลในเครื่อง'+(n?' · ค้าง '+n:''); }
+  else if(n){ el.innerHTML='🟡 <b>รอซิงก์ '+n+'</b> · กดเพื่อส่ง'; }
+  else if(S.online){ el.innerHTML='🟢 <b>ออนไลน์</b> · '+S.all.length+' รายการ'; }
+  else { el.innerHTML='⏳ กำลังเชื่อมต่อ…'; }
+}
+
+/* ---------------- pools & unit status ---------------- */
+function yearsAvail(){ const ys=new Set(S.all.filter(r=>scopeOf(r)===S.scope).map(rYear).filter(Boolean)); ys.add(new Date().getFullYear()); return [...ys].sort((a,b)=>b-a); }
+const poolYear=(y=S.year)=>S.all.filter(r=>scopeOf(r)===S.scope&&rYear(r)===y);
+const inGrp=(r,g=S.grp)=>g==='ALL'||unitGroup(r.ward)===g;
+function unitMap(pool){
+  const m={};
+  for(const r of pool){
+    const u=canonUnit(r.ward), k=wkey(u), rn=rRound(r), d=(r.date||'')+' '+(r.time||'');
+    const e=m[k]||(m[k]={k,name:u,group:unitGroup(u),setting:unitSetting(u),rounds:{},recs:[],_d:''});
+    e.recs.push(r);
+    const cur=e.rounds[rn]; if(!cur||d>=((cur.date||'')+' '+(cur.time||''))) e.rounds[rn]=r;
+    if(d>=e._d){ e._d=d; if(!CCD_SET[k]) e.name=String(r.ward||u).trim(); }
+  }
+  const closed=S.year<new Date().getFullYear();
+  for(const e of Object.values(m)){
+    e.ns=Object.keys(e.rounds).map(Number).sort((a,b)=>a-b); e.last=e.ns[e.ns.length-1];
+    e.lastRec=e.rounds[e.last]; const s=sc(e.lastRec);
+    e.pct=s.core.pct; e.aclsPct=s.acls?s.acls.pct:null; e.pass=s.pass;
+    e.first=sc(e.rounds[e.ns[0]]); e.firstPct=e.first.core.pct;
+    e.code=e.pass?'pass':e.last>=FINAL_ROUND?'failed':e.last===1?'need2':'need3';
+    e.kpi=e.pass?(e.last===1?5:e.last===2?4:3):(e.last>=FINAL_ROUND?2:(closed?(e.last===1?1:2):null));
+    e.staff=e.recs.reduce((s,r)=>s+(parseInt(r.staffCount,10)||0),0);
+  }
+  return m;
+}
+const ST={pass:['ผ่านเกณฑ์','b-pass'],need2:['รอซ่อมครั้งที่ 2','b-warn'],need3:['รอซ่อมครั้งที่ 3','b-warn'],failed:['ไม่ผ่าน (ครบ 3 ครั้ง)','b-fail']};
+const stBadge=c=>c?'<span class="badge '+ST[c][1]+'">'+ST[c][0]+'</span>':'<span class="badge b-mute">ยังไม่ประเมิน</span>';
+const grpBadge=g=>'<span class="badge b-'+g.toLowerCase()+'">'+g+'</span>';
+function pctBadge(p){ if(p==null) return '<span class="badge b-mute">–</span>'; return '<span class="badge '+(p>=80?'b-pass':p>50?'b-warn':'b-fail')+'">'+p+'%</span>'; }
+function heat(p,n){ if(p==null) return '<span class="heat" style="background:#F1F5F9;color:#94A3B8">–</span>';
+  const st=p>=80?'background:#DCFCE7;color:#166534':p>50?'background:#FEF3C7;color:#92400E':'background:#FEE2E2;color:#991B1B';
+  return '<span class="heat" style="'+st+'" title="'+(n!=null?'n = '+n:'')+'">'+Math.round(p)+'%</span>'; }
+
+/* ---------------- charts (SVG) ---------------- */
+function barChart(o){
+  const W=o.w||720,H=o.h||260,L=40,R=12,T=22,B=o.b||46, pw=W-L-R, ph=H-T-B, max=o.max||100, cats=o.cats, ser=o.series;
+  const band=pw/cats.length, bw=Math.min(o.bw||34,(band*.8)/ser.length), y=v=>T+ph*(1-Math.min(v,max)/max);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.label||'chart')+'">';
+  for(let g=0;g<=max;g+=max/5){ s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="#E8EDF4"/><text x="'+(L-6)+'" y="'+(y(g)+4)+'" font-size="11" text-anchor="end" fill="#94A3B8">'+g+(o.unit||'')+'</text>'; }
+  if(o.target!=null){ s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(o.target)+'" y2="'+y(o.target)+'" stroke="#D7262E" stroke-dasharray="5 4" stroke-width="1.3"/>'; }
+  cats.forEach((c,i)=>{
+    const x0=L+band*i+(band-bw*ser.length)/2;
+    ser.forEach((se,j)=>{ const v=se.vals[i]; if(v==null) return; const x=x0+j*bw, yy=y(v), h=T+ph-yy;
+      s+='<rect x="'+(x+1)+'" y="'+yy+'" width="'+(bw-2)+'" height="'+Math.max(h,0)+'" rx="3" fill="'+se.color+'"><title>'+esc(c+' · '+se.name+': '+Math.round(v)+(o.unit||''))+'</title></rect>';
+      if(bw>=16) s+='<text x="'+(x+bw/2)+'" y="'+(yy-4)+'" font-size="'+(bw>=24?11:9.5)+'" text-anchor="middle" fill="#334155" font-weight="700">'+Math.round(v)+'</text>'; });
+    const lines=String(c).split('\n');
+    lines.forEach((ln,li)=>{ s+='<text x="'+(L+band*i+band/2)+'" y="'+(T+ph+16+li*13)+'" font-size="12" text-anchor="middle" fill="#334155">'+esc(ln)+'</text>'; });
+  });
+  return s+'</svg>';
+}
+function lineChart(o){
+  const W=o.w||720,H=o.h||250,L=40,R=12,T=18,B=30, pw=W-L-R, ph=H-T-B, max=o.max||100, n=o.cats.length;
+  const x=i=>L+pw*(n===1?.5:i/(n-1)), y=v=>T+ph*(1-Math.min(v,max)/max);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.label||'chart')+'">';
+  for(let g=0;g<=max;g+=max/5) s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="#E8EDF4"/><text x="'+(L-6)+'" y="'+(y(g)+4)+'" font-size="11" text-anchor="end" fill="#94A3B8">'+g+'%</text>';
+  if(o.target!=null) s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(o.target)+'" y2="'+y(o.target)+'" stroke="#D7262E" stroke-dasharray="5 4"/>';
+  o.cats.forEach((c,i)=>{ s+='<text x="'+x(i)+'" y="'+(H-8)+'" font-size="11.5" text-anchor="middle" fill="#334155">'+esc(c)+'</text>'; });
+  o.series.forEach(se=>{
+    let seg=[]; const segs=[];
+    se.vals.forEach((v,i)=>{ if(v==null){ if(seg.length) segs.push(seg); seg=[]; } else seg.push([x(i),y(v),v,i]); }); if(seg.length) segs.push(seg);
+    segs.forEach(sg=>{ if(sg.length>1) s+='<polyline fill="none" stroke="'+se.color+'" stroke-width="2.4" points="'+sg.map(p=>p[0]+','+p[1]).join(' ')+'"/>';
+      sg.forEach(p=>{ s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="#fff" stroke="'+se.color+'" stroke-width="2.2"><title>'+esc(o.cats[p[3]]+' · '+se.name+': '+Math.round(p[2])+'%'+(se.ns?' (n='+se.ns[p[3]]+')':''))+'</title></circle>'; }); });
+  });
+  return s+'</svg>';
+}
+const legend=ser=>'<div class="legend">'+ser.map(s=>'<span><i style="background:'+s.color+'"></i>'+esc(s.name)+'</span>').join('')+'<span style="color:#D7262E"><i style="background:none;border-top:2px dashed #D7262E;height:0;border-radius:0;vertical-align:3px"></i>เกณฑ์ 80%</span></div>';
+function hbars(rows,o={}){ if(!rows.length) return '<div class="empty">ยังไม่มีข้อมูล</div>';
+  return rows.map(r=>{ const p=r.v==null?0:r.v; const col=r.color||(p>=80?'#16A34A':p>50?'#F59E0B':'#DC2626');
+    return '<div class="hb"><div>'+r.label+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,p))+'%;background:'+col+'"></i></div><div class="val">'+(r.v==null?'–':Math.round(r.v)+(o.unit==null?'%':o.unit))+'</div></div>'; }).join(''); }
+
+/* ---------------- common UI ---------------- */
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),3200); }
+function openModal(title,body,foot){ $('#mTitle').innerHTML=title; $('#mBody').innerHTML=body; $('#mFoot').innerHTML=foot||''; $('#modal').classList.add('on'); }
+function closeModal(){ $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+function grpChips(withAll=true){
+  const opts=(withAll?['ALL']:[]).concat(GROUPS);
+  return '<div class="chips no-print">'+opts.map(g=>'<button class="chip'+(S.grp===g?' on':'')+'" data-grp="'+g+'">'+(g==='ALL'?'ทั้งหมด':'<span class="dot" style="background:'+GCOL[g]+'"></span>'+GNAME[g])+'</button>').join('')+'</div>';
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-grp]'); if(!b) return; S.grp=b.dataset.grp; saveUI(); renderTab(); });
+function yearLabel(){ return 'ปี '+BE(S.year)+(S.scope==='EXTRA'?' · นอกสังกัด NSO':''); }
+function latestDate(pool){ const d=pool.map(r=>r.date||'').sort().pop(); return d?fmtDate(d,true):'–'; }
+
+/* ================================================================
+   TAB: OVERVIEW
+   ================================================================ */
+function renderOverview(){
+  const pool=poolYear(), um=unitMap(pool), all=Object.values(um);
+  const U=all.filter(u=>S.grp==='ALL'||u.group===S.grp), P=pool.filter(r=>inGrp(r));
+  const r1=U.filter(u=>u.rounds[1]), passFirst=r1.filter(u=>sc(u.rounds[1]).pass).length;
+  const nPass=U.filter(u=>u.code==='pass').length, nWait=U.filter(u=>u.code==='need2'||u.code==='need3').length;
+  const kpis=U.map(u=>u.kpi).filter(v=>v!=null);
+  let h='<div class="sec-h"><div><h2>ภาพรวมผลการซ้อม Code 8 · '+yearLabel()+'</h2><p>ข้อมูลล่าสุด '+latestDate(pool)+' · ผ่านเกณฑ์ = คะแนนรวม ≥ 80% (หน่วย CCD ต้องผ่านทั้ง Core และ ACLS)</p></div><div class="sp"></div>'+grpChips()+'</div>';
+  if(!pool.length){ $('#p-overview').innerHTML=h+'<div class="card empty">ยังไม่มีข้อมูลการซ้อมใน'+yearLabel()+' — เริ่มบันทึกได้ที่แท็บ <b>📝 ลงคะแนน</b></div>'; return; }
+  const tile=(l,v,d,acc)=>'<div class="kpi" style="--acc:'+(acc||'var(--navy)')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="d">'+(d||'')+'</div></div>';
+  h+='<div class="grid g4">'
+   +tile('หน่วยงานที่ประเมินแล้ว',U.length+' <small>หน่วยงาน</small>',P.length+' ครั้ง · บุคลากร '+U.reduce((s,u)=>s+u.staff,0)+' คน')
+   +tile('ผ่านเกณฑ์ (ผลล่าสุด)',nPass+' <small>/ '+U.length+'</small>',(U.length?Math.round(nPass/U.length*100):0)+'% ของหน่วยงานที่ประเมิน','#15803D')
+   +tile('ผ่านตั้งแต่ครั้งแรก',passFirst+' <small>/ '+r1.length+'</small>','คะแนนเฉลี่ยครั้งแรก '+f0(avg(r1.map(u=>sc(u.rounds[1]).core.pct))),'#2563EB')
+   +tile('รอซ่อม / KPI Score เฉลี่ย',nWait+' <small>หน่วยงาน</small>','KPI Score เฉลี่ย '+(kpis.length?(avg(kpis)).toFixed(2):'–')+' (เต็ม 5)','#B45309')
+   +'</div>';
+
+  // group comparison
+  const gs=GROUPS.map(g=>{ const us=all.filter(u=>u.group===g); const f=us.filter(u=>u.rounds[1]);
+    return {g,n:us.length,first:avg(f.map(u=>sc(u.rounds[1]).core.pct)),last:avg(us.map(u=>u.pct)),pr:us.length?us.filter(u=>u.pass).length/us.length*100:null}; });
+  const ser1=[{name:'คะแนนเฉลี่ยครั้งแรก',color:'#93A6C9',vals:gs.map(x=>x.first)},{name:'คะแนนเฉลี่ยผลล่าสุด',color:'#0F2A5F',vals:gs.map(x=>x.last)},{name:'% หน่วยงานผ่านเกณฑ์',color:'#16A34A',vals:gs.map(x=>x.pr)}];
+  // domains R1 by group
+  const domSer=GROUPS.map(g=>{ const recs=pool.filter(r=>rRound(r)===1&&unitGroup(r.ward)===g);
+    return {name:g,color:GCOL[g],vals:[1,2,3,4,5].map(d=>{ let e=0,m=0; recs.forEach(r=>{ const x=sc(r).core.doms[d]; if(x){e+=x.e;m+=x.m;} }); return m?e/m*100:null; })}; });
+  h+='<div class="grid g2" style="margin-top:14px">'
+   +'<div class="card chart"><h3>เปรียบเทียบ 3 กลุ่ม</h3><p class="sub">ใช้ Core 28 ข้อชุดเดียวกัน · '+gs.map(x=>x.g+' '+x.n+' หน่วยงาน').join(' · ')+'</p>'+legend(ser1)+barChart({cats:GROUPS.map(g=>GNAME[g]),series:ser1,target:80,unit:'',label:'group comparison'})+'</div>'
+   +'<div class="card chart"><h3>คะแนนรายด้าน (Domain) — ผลครั้งแรก</h3><p class="sub">ใช้เฉพาะการซ้อมครั้งที่ 1 เพื่อเทียบอย่างยุติธรรมก่อนการซ่อม</p>'+legend(domSer)+barChart({cats:[1,2,3,4,5].map(d=>CORE_DOMAINS[d].code+'\n'+CORE_DOMAINS[d].en.split(' ')[0]),series:domSer,target:80,b:52,label:'domains'})+'</div>'
+   +'</div>';
+
+  // monthly trend + KPI score distribution
+  const months=[...Array(12).keys()];
+  const trend=GROUPS.filter(g=>S.grp==='ALL'||S.grp===g).map(g=>{ const ns=[]; const vals=months.map(m=>{ const rs=pool.filter(r=>unitGroup(r.ward)===g&&+String(r.date).slice(5,7)===m+1); ns.push(rs.length); return avg(rs.map(r=>sc(r).core.pct)); }); return {name:g,color:GCOL[g],vals,ns}; });
+  const cnt=months.map(m=>P.filter(r=>+String(r.date).slice(5,7)===m+1).length);
+  const kd=[5,4,3,2,1,null];
+  const kRows=GROUPS.filter(g=>S.grp==='ALL'||S.grp===g).map(g=>{ const us=all.filter(u=>u.group===g); const c=kd.map(k=>us.filter(u=>u.kpi===k).length);
+    return '<tr><td>'+grpBadge(g)+'</td>'+c.map((v,i)=>'<td class="num">'+(v||'<span class="muted">0</span>')+'</td>').join('')+'<td class="num"><b>'+us.length+'</b></td><td class="num">'+(us.filter(u=>u.kpi!=null).length?avg(us.map(u=>u.kpi)).toFixed(2):'–')+'</td></tr>'; }).join('');
+  h+='<div class="grid g2" style="margin-top:14px">'
+   +'<div class="card chart"><h3>แนวโน้มคะแนนเฉลี่ยรายเดือน</h3><p class="sub">ทุกครั้งที่ซ้อม · จำนวนครั้ง: '+months.filter(m=>cnt[m]).map(m=>TH_M[m]+' '+cnt[m]).join(' · ')+'</p>'+legend(trend)+lineChart({cats:TH_M,series:trend,target:80})+'</div>'
+   +'<div class="card"><h3>KPI Score รายหน่วยงาน</h3><p class="sub">5 = ผ่านครั้งแรก · 4 = ผ่านครั้งที่ 2 · 3 = ผ่านครั้งที่ 3 · 2 = ครั้งที่ 3 ไม่ผ่าน · 1 = ไม่ผ่านครั้งแรกและไม่ซ้อมซ้ำ (นับเมื่อปิดปี)</p>'
+   +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>กลุ่ม</th><th class="num">5</th><th class="num">4</th><th class="num">3</th><th class="num">2</th><th class="num">1</th><th class="num">ระหว่างซ่อม</th><th class="num">รวม</th><th class="num">เฉลี่ย</th></tr></thead><tbody>'+kRows+'</tbody></table></div>'
+   +extraChecksSummary(P)+'</div></div>';
+
+  // year-over-year
+  const ys=yearsAvail().filter(y=>S.all.some(r=>scopeOf(r)===S.scope&&rYear(r)===y)).sort();
+  if(ys.length>1){
+    const yser=GROUPS.map(g=>({name:g,color:GCOL[g],vals:ys.map(y=>{ const ums=Object.values(unitMap(poolYear(y))).filter(u=>u.group===g&&u.rounds[1]); return avg(ums.map(u=>sc(u.rounds[1]).core.pct)); })}));
+    h+='<div class="card chart" style="margin-top:14px"><h3>เทียบรายปี — คะแนนเฉลี่ยครั้งแรก</h3><p class="sub">ใช้ติดตามการพัฒนาข้ามปี</p>'+legend(yser)+barChart({cats:ys.map(y=>'ปี '+BE(y)),series:yser,target:80})+'</div>';
+  }
+
+  // follow-up list
+  const wait=U.filter(u=>u.code==='need2'||u.code==='need3'||u.code==='failed').sort((a,b)=>(a.pct||0)-(b.pct||0));
+  h+='<div class="sec-h"><div><h2>หน่วยงานที่ต้องติดตาม</h2><p>ยังไม่ผ่านเกณฑ์จากผลล่าสุด · เรียงจากคะแนนน้อยไปมาก</p></div></div>';
+  h+=wait.length?'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>หน่วยงาน</th><th>กลุ่ม</th><th class="c">ครั้งล่าสุด</th><th class="num">คะแนน</th><th>Critical ที่พลาด</th><th>วันนัดซ่อม</th><th>สถานะ</th></tr></thead><tbody>'
+    +wait.map(u=>{ const s=sc(u.lastRec); const cr=s.core.crit.map(k=>CORE_BY[k]?CORE_BY[k].no:k).concat(s.acls?s.acls.crit:[]);
+      return '<tr style="cursor:pointer" data-unit="'+esc(u.k)+'"><td><b>'+esc(u.name)+'</b></td><td>'+grpBadge(u.group)+'</td><td class="c">'+u.last+' · '+fmtDate(u.lastRec.date)+'</td><td class="num">'+pctBadge(u.pct)+(u.aclsPct!=null?' <span class="small muted">ACLS '+u.aclsPct+'%</span>':'')+'</td><td class="small">'+(cr.join(', ')||'–')+'</td><td>'+(u.lastRec.remedialDate?fmtDate(u.lastRec.remedialDate):'<span class="muted">–</span>')+'</td><td>'+stBadge(u.code)+'</td></tr>'; }).join('')+'</tbody></table></div>'
+    :'<div class="card empty">ไม่มีหน่วยงานค้างซ่อม 🎉</div>';
+  $('#p-overview').innerHTML=h;
+}
+function extraChecksSummary(P){
+  const rows=EXTRA_CHECKS.map(c=>{ const v=P.map(r=>((r.extraChecks||{})[c.key]||{}).status).filter(Boolean); const ok=v.filter(x=>x==='ครบ').length;
+    return {label:c.short+' <span class="muted small">(ตรวจ '+v.length+' ครั้ง)</span>',v:v.length?ok/v.length*100:null}; });
+  return '<h3 style="margin-top:14px">การตรวจสอบเพิ่มเติม (ไม่นับคะแนน)</h3><p class="sub">% ที่ตรวจพบว่าครบถ้วน</p>'+hbars(rows);
+}
+
+/* ================================================================
+   TAB: CRITICAL CARE
+   ================================================================ */
+function renderCCD(){
+  const pool=poolYear().filter(r=>isAcls(r.ward)), um=unitMap(pool);
+  const useFirst=S.ccdMode==='1';
+  const pick=u=>useFirst?(u.rounds[1]||null):u.lastRec;
+  let h='<div class="sec-h"><div><h2>Critical Care · Core 28 + ACLS Module · '+yearLabel()+'</h2><p>10 หน่วยงาน: '+CCD_UNITS.map(u=>u.n).join(', ')+'</p></div><div class="sp"></div>'
+   +'<div class="chips no-print"><button class="chip'+(useFirst?' on':'')+'" data-ccdm="1">ผลครั้งแรก</button><button class="chip'+(!useFirst?' on':'')+'" data-ccdm="last">ผลล่าสุด</button></div></div>';
+  const units=CCD_UNITS.map(cu=>Object.assign({cu},um[wkey(cu.n)]||{}));
+  const done=units.filter(u=>u.lastRec), recs=done.map(pick).filter(Boolean);
+  const sAll=recs.map(sc);
+  const tile=(l,v,d,acc)=>'<div class="kpi" style="--acc:'+(acc||'var(--red)')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="d">'+(d||'')+'</div></div>';
+  h+='<div class="grid g4">'
+   +tile('ประเมินแล้ว',done.length+' <small>/ 10 หน่วยงาน</small>',pool.length+' ครั้ง')
+   +tile('Core 28 ข้อ (เฉลี่ย)',f0(avg(sAll.map(s=>s.core.pct))),'ผ่าน ≥80%: '+sAll.filter(s=>s.corePass).length+' / '+sAll.length,'#0F2A5F')
+   +tile('ACLS Module (เฉลี่ย)',f0(avg(sAll.map(s=>s.acls&&s.acls.pct))),'ผ่าน ≥80%: '+sAll.filter(s=>s.aclsPass).length+' / '+sAll.filter(s=>s.acls).length,'#0E7490')
+   +tile('ผ่านทั้งสองส่วน',sAll.filter(s=>s.pass).length+' <small>/ '+sAll.length+'</small>','Shock แรก (มัธยฐาน) '+mmss(median(recs.map(r=>r.times&&r.times.shock)))+' · Epi แรก '+mmss(median(recs.map(r=>r.times&&r.times.epi))),'#15803D')
+   +'</div>';
+
+  // unit table
+  h+='<div class="sec-h"><div><h2>ผลรายหน่วยงาน</h2><p>'+(useFirst?'ผลการซ้อมครั้งที่ 1':'ผลการซ้อมครั้งล่าสุด')+' · ★ = Critical ที่พลาด (ประเด็นพัฒนา)</p></div></div>';
+  h+='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>หน่วยงาน</th><th>Setting</th><th class="c">ครั้งที่ · วันที่</th><th>Scenario</th><th class="num">Core</th><th class="num">ACLS</th><th>★ ที่พลาด</th><th>สถานะ</th></tr></thead><tbody>'
+   +units.map(u=>{ const r=u.lastRec?pick(u):null;
+     if(!r) return '<tr><td><b>'+esc(u.cu.n)+'</b></td><td>'+SETTINGS[u.cu.set]+'</td><td colspan="5" class="muted">'+(u.lastRec?'ยังไม่มีผลครั้งที่ 1':'ยังไม่ได้ประเมินใน'+yearLabel())+'</td><td>'+stBadge(u.lastRec?u.code:null)+'</td></tr>';
+     const s=sc(r); const cr=s.core.crit.map(k=>CORE_BY[k].no).concat(s.acls?s.acls.crit:[]);
+     return '<tr style="cursor:pointer" data-rec="'+esc(r._docId||r.id)+'"><td><b>'+esc(u.cu.n)+'</b></td><td>'+SETTINGS[u.cu.set]+'</td><td class="c">'+rRound(r)+' · '+fmtDate(r.date)+'</td><td class="small">'+(r.scenario?esc(r.scenario+' '+(SCN_BY[r.scenario]?SCN_BY[r.scenario].t:'')):'<span class="muted">–</span>')+'</td><td class="num">'+pctBadge(s.core.pct)+'</td><td class="num">'+pctBadge(s.acls?s.acls.pct:null)+'</td><td class="small crit">'+(cr.join(', ')||'<span class="muted">–</span>')+'</td><td>'+stBadge(u.code)+'</td></tr>'; }).join('')
+   +'</tbody></table></div>';
+
+  // by setting
+  const sets=Object.keys(SETTINGS);
+  const bySet=k=>recs.filter(r=>unitSetting(r.ward)===k);
+  const serS=[{name:'Core 28',color:'#0F2A5F',vals:sets.map(k=>avg(bySet(k).map(r=>sc(r).core.pct)))},{name:'ACLS Module',color:'#0E7490',vals:sets.map(k=>avg(bySet(k).map(r=>{const a=sc(r).acls;return a&&a.pct;})))}];
+  const domRows=Object.keys(ACLS_DOMAINS).map(d=>'<tr><td><b>'+d+'</b> '+esc(ACLS_DOMAINS[d].th)+'</td>'+sets.map(k=>{ let e=0,m=0; bySet(k).forEach(r=>{const a=sc(r).acls; if(a&&a.doms[d]){e+=a.doms[d].e;m+=a.doms[d].m;}}); return '<td class="c">'+heat(m?e/m*100:null)+'</td>'; }).join('')+'<td class="c">'+(()=>{let e=0,m=0; recs.forEach(r=>{const a=sc(r).acls; if(a&&a.doms[d]){e+=a.doms[d].e;m+=a.doms[d].m;}}); return heat(m?e/m*100:null);})()+'</td></tr>').join('');
+  h+='<div class="grid g2" style="margin-top:14px">'
+   +'<div class="card chart"><h3>Core vs ACLS ตาม Setting</h3><p class="sub">คะแนนเฉลี่ย</p>'+legend(serS)+barChart({cats:sets.map(k=>SETTINGS[k]),series:serS,target:80})+'</div>'
+   +'<div class="card"><h3>ACLS รายด้าน × Setting</h3><p class="sub">% คะแนนที่ได้ (รวมทุกหน่วยใน setting)</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>ด้าน</th>'+sets.map(k=>'<th class="c">'+SETTINGS[k]+'</th>').join('')+'<th class="c">รวม</th></tr></thead><tbody>'+domRows+'</tbody></table></div></div>'
+   +'</div>';
+
+  // ACLS items
+  const itRows=ACLS_ITEMS.map(it=>{ const cell=rs=>{ let p=0,n=0; rs.forEach(r=>{const a=(r.acls&&r.acls.scores||{})[it.k]; if(a==='pass'){p++;n++;} else if(a==='fail') n++;}); return heat(n?p/n*100:null,n); };
+    return '<tr><td class="c"><b>'+it.no+'</b></td><td>'+esc(it.s)+(it.c?' <span class="crit">★</span>':'')+'</td>'+sets.map(k=>'<td class="c">'+cell(bySet(k))+'</td>').join('')+'<td class="c">'+cell(recs)+'</td></tr>'; }).join('');
+  h+='<div class="sec-h"><div><h2>ACLS Module รายข้อ</h2><p>% ผ่าน (ไม่นับ N/A) · ★ = Critical</p></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="c">ข้อ</th><th>รายการ</th>'+sets.map(k=>'<th class="c">'+SETTINGS[k]+'</th>').join('')+'<th class="c">รวม</th></tr></thead><tbody>'+itRows+'</tbody></table></div>';
+
+  // timing + scenario coverage
+  const tRows=sets.map(k=>{ const rs=bySet(k); const t=f=>median(rs.map(r=>r.times&&r.times[f]));
+    return '<tr><td><b>'+SETTINGS[k]+'</b></td><td class="num">'+rs.length+'</td><td class="num">'+mmss(t('cpr'))+'</td><td class="num">'+mmss(t('shock'))+'</td><td class="num">'+mmss(t('iv'))+'</td><td class="num">'+mmss(t('epi'))+'</td><td class="num">'+(t('ccf')==null?'–':Math.round(t('ccf'))+'%')+'</td></tr>'; }).join('');
+  const scRows=CCD_UNITS.map(cu=>{ const rs=pool.filter(r=>canonUnit(r.ward)===cu.n); return '<tr><td><b>'+esc(cu.n)+'</b></td>'+SCENARIOS.map(s=>{ const n=rs.filter(r=>r.scenario===s.k).length; const rec=s.set===cu.set||(cu.set==='CCU'&&s.set==='ICU');
+      return '<td class="c" style="'+(rec?'background:#FFF7F7':'')+'">'+(n?'<b>'+n+'</b>':'<span class="muted">·</span>')+'</td>'; }).join('')+'</tr>'; }).join('');
+  h+='<div style="margin-top:14px">'
+   +'<div class="card"><h3>เวลามาตรฐาน (มัธยฐาน) ตาม Setting</h3><p class="sub">นับจาก T0 (ผู้ป่วยหมดสติ) · นาที:วินาที</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Setting</th><th class="num">n</th><th class="num">เริ่มกด</th><th class="num">Shock แรก</th><th class="num">IV/IO</th><th class="num">Epi แรก</th><th class="num">CCF</th></tr></thead><tbody>'+tRows+'</tbody></table></div></div>'
+   +'</div><div class="card" style="margin-top:14px"><h3>การใช้ Scenario</h3><p class="sub">ติดตามให้แต่ละหน่วยได้ scenario หมุนเวียนครบ · ช่องสีชมพู = scenario ที่แนะนำสำหรับ setting นั้น</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>หน่วยงาน</th>'+SCENARIOS.map(s=>'<th class="c small" title="'+esc(s.t)+'">'+s.k+'</th>').join('')+'</tr></thead><tbody>'+scRows+'</tbody></table></div></div>'
+   +'</div>';
+  $('#p-ccd').innerHTML=h;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-ccdm]'); if(!b) return; S.ccdMode=b.dataset.ccdm; renderCCD(); });
+
+/* ================================================================
+   TAB: UNITS
+   ================================================================ */
+function renderUnits(){
+  const pool=poolYear(), um=unitMap(pool);
+  let units=Object.values(um);
+  if(S.showUndrilled&&S.scope==='NSO'){
+    const master=CCD_UNITS.map(u=>u.n).concat(PED_CRITICAL,IPD_UNITS,OPD_UNITS);
+    master.forEach(n=>{ const k=wkey(canonUnit(n)); if(!um[k]) units.push({k,name:canonUnit(n),group:unitGroup(n),rounds:{},ns:[],code:null,pct:null,undrilled:true}); });
+  }
+  units=units.filter(u=>S.grp==='ALL'||u.group===S.grp).filter(u=>!S.unitQ||u.name.toLowerCase().indexOf(S.unitQ.toLowerCase())>=0);
+  const ord={need2:0,need3:1,failed:2,pass:3,null:4};
+  units.sort(S.unitSort==='pct'?(a,b)=>(a.pct==null?999:a.pct)-(b.pct==null?999:b.pct):S.unitSort==='status'?(a,b)=>ord[a.code]-ord[b.code]||a.name.localeCompare(b.name):(a,b)=>a.name.localeCompare(b.name,'th'));
+  let h='<div class="sec-h"><div><h2>สถานะรายหน่วยงาน · '+yearLabel()+'</h2><p>แต่ละการ์ดแสดงคะแนนครั้งที่ 1–3 · ผลสุดท้าย = ครั้งล่าสุด · คลิกเพื่อดูประวัติทุกปี</p></div><div class="sp"></div>'+grpChips()+'</div>'
+   +'<div class="row no-print" style="margin-bottom:12px;align-items:center"><input type="search" id="unitQ" placeholder="🔍 ค้นหาหน่วยงาน" value="'+esc(S.unitQ)+'" style="max-width:260px">'
+   +'<select class="inp" id="unitSort" style="max-width:190px"><option value="name">เรียงตามชื่อ</option><option value="pct">คะแนนน้อย → มาก</option><option value="status">สถานะ (รอซ่อมก่อน)</option></select>'
+   +'<label class="small"><input type="checkbox" id="unitUndr"'+(S.showUndrilled?' checked':'')+'> แสดงหน่วยงานที่ยังไม่ประเมิน</label></div>';
+  const sections=(S.grp==='ALL'?GROUPS:[S.grp]).map(g=>{ const us=units.filter(u=>u.group===g); if(!us.length) return '';
+    return '<div class="sec-h" style="margin-top:10px"><h2 style="font-size:16px;color:'+GCOL[g]+'">'+GNAME[g]+' <span class="muted small">('+us.filter(u=>!u.undrilled).length+' ประเมินแล้ว'+(us.some(u=>u.undrilled)?' · '+us.filter(u=>u.undrilled).length+' ยังไม่ประเมิน':'')+')</span></h2></div><div class="units">'
+     +us.map(u=>{ const col=u.code==='pass'?'#16A34A':u.code?(u.code==='failed'?'#DC2626':'#F59E0B'):'#CBD5E1';
+       return '<div class="unit" style="--c:'+col+'" data-unit="'+esc(u.k)+'"><div class="n">'+esc(u.name)+'</div><div class="rs">'+[1,2,3].map(n=>{ const r=u.rounds[n]; if(!r) return '<span class="r" style="opacity:.45">#'+n+' –</span>'; const s=sc(r); return '<span class="r" style="color:'+(s.pass?'#15803D':'#B91C1C')+'">#'+n+' '+s.core.pct+'%'+(s.acls?' · A'+s.acls.pct:'')+'</span>'; }).join('')+'</div><div class="st">'+stBadge(u.code)+(u.kpi?' <span class="badge b-mute">KPI '+u.kpi+'</span>':'')+'</div></div>'; }).join('')+'</div>'; }).join('');
+  $('#p-units').innerHTML=h+(sections||'<div class="card empty">ไม่พบหน่วยงาน</div>');
+  $('#unitSort').value=S.unitSort;
+}
+document.addEventListener('input',e=>{ if(e.target.id==='unitQ'){ S.unitQ=e.target.value; const p=e.target.selectionStart; renderUnits(); const n=$('#unitQ'); n.focus(); n.setSelectionRange(p,p); } });
+document.addEventListener('change',e=>{ if(e.target.id==='unitSort'){ S.unitSort=e.target.value; renderUnits(); } if(e.target.id==='unitUndr'){ S.showUndrilled=e.target.checked; renderUnits(); } });
+document.addEventListener('click',e=>{ const u=e.target.closest('[data-unit]'); if(u) showUnit(u.dataset.unit); const r=e.target.closest('[data-rec]'); if(r&&!e.target.closest('button')) showRec(r.dataset.rec); });
+function showUnit(k){
+  const recs=S.all.filter(r=>scopeOf(r)===S.scope&&wkey(canonUnit(r.ward))===k).sort((a,b)=>((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
+  if(!recs.length){ toast('หน่วยงานนี้ยังไม่มีข้อมูลการซ้อม'); return; }
+  const name=canonUnit(recs[0].ward), g=unitGroup(name);
+  const last=recs[0], s=sc(last);
+  const dom=hbars([1,2,3,4,5].map(d=>{ const x=s.core.doms[d]; return {label:CORE_DOMAINS[d].code+' '+esc(CORE_DOMAINS[d].en),v:x&&x.m?x.e/x.m*100:null,color:CORE_DOMAINS[d].color}; }));
+  const body='<div class="row" style="align-items:center;margin-bottom:8px">'+grpBadge(g)+(unitSetting(name)?' <span class="badge b-mute">'+SETTINGS[unitSetting(name)]+'</span>':'')+'<span class="muted small">'+recs.length+' ครั้ง · ทุกปี</span></div>'
+   +'<div class="grid g2"><div><h3 style="margin:0 0 6px;font-size:15px">คะแนนรายด้าน — ครั้งล่าสุด ('+fmtDate(last.date)+')</h3>'+dom+'</div>'
+   +'<div><h3 style="margin:0 0 6px;font-size:15px">Critical ที่พลาด (ครั้งล่าสุด)</h3>'+(s.core.crit.length||(s.acls&&s.acls.crit.length)?'<ul class="small">'+s.core.crit.map(k=>'<li><b>'+CORE_BY[k].no+'</b> '+esc(CORE_BY[k].s)+'</li>').join('')+(s.acls?s.acls.crit.map(k=>'<li><b>'+k+'</b> '+esc(ACLS_BY[k].s)+'</li>').join(''):'')+'</ul>':'<p class="muted">ไม่มี</p>')+'</div></div>'
+   +'<h3 style="margin:14px 0 6px;font-size:15px">ประวัติการซ้อม</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>ปี</th><th>วันที่</th><th class="c">ครั้งที่</th><th class="num">Core</th><th class="num">ACLS</th><th>ผู้ประเมิน</th><th></th></tr></thead><tbody>'
+   +recs.map(r=>{ const x=sc(r); return '<tr><td>'+BE(rYear(r))+'</td><td>'+fmtDate(r.date)+' '+esc(r.time||'')+'</td><td class="c">'+rRound(r)+'</td><td class="num">'+pctBadge(x.core.pct)+'</td><td class="num">'+(x.acls?pctBadge(x.acls.pct):'–')+'</td><td class="small">'+esc(assessorText(r))+'</td><td><button class="btn sm" data-rec="'+esc(r._docId||r.id)+'">ดู</button></td></tr>'; }).join('')+'</tbody></table></div>';
+  openModal('🏥 '+esc(name),body,'<button class="btn" onclick="closeModal()">ปิด</button>');
+}
+
+/* ================================================================
+   TAB: ITEMS
+   ================================================================ */
+function itemsPool(){
+  const pool=poolYear();
+  if(S.itemsMode==='1') return pool.filter(r=>rRound(r)===1);
+  if(S.itemsMode==='last') return Object.values(unitMap(pool)).map(u=>u.lastRec);
+  return pool;
+}
+function itemStat(recs,k,acls){ let p=0,f=0,na=0; recs.forEach(r=>{ const a=acls?((r.acls||{}).scores||{})[k]:(r.scores||{})[k]; if(a==='pass')p++; else if(a==='fail')f++; else if(a==='na')na++; }); return {p,f,na,n:p+f,pct:p+f?p/(p+f)*100:null}; }
+function renderItems(){
+  const recs=itemsPool();
+  const G=S.grp==='ALL'?GROUPS:[S.grp];
+  const R=recs.filter(r=>inGrp(r));
+  let h='<div class="sec-h"><div><h2>วิเคราะห์รายข้อ Core 28 ข้อ · '+yearLabel()+'</h2><p>% ผ่าน = ผ่าน ÷ (ผ่าน + ไม่ผ่าน) · ไม่นับ N/A · ★ = Critical</p></div><div class="sp"></div>'+grpChips()+'</div>'
+   +'<div class="chips no-print" style="margin-bottom:12px">'+[['1','ครั้งที่ 1 (ก่อนซ่อม)'],['last','ผลล่าสุดของแต่ละหน่วย'],['all','ทุกครั้ง']].map(x=>'<button class="chip'+(S.itemsMode===x[0]?' on':'')+'" data-im="'+x[0]+'">'+x[1]+'</button>').join('')+'<span class="muted small" style="align-self:center;margin-left:6px">'+R.length+' ครั้ง</span></div>';
+  if(!R.length){ $('#p-items').innerHTML=h+'<div class="card empty">ยังไม่มีข้อมูล</div>'; return; }
+  const all=CORE_ITEMS.map(it=>Object.assign({it},itemStat(R,it.k)));
+  const low=all.filter(x=>x.pct!=null).sort((a,b)=>a.pct-b.pct).slice(0,10);
+  const critRecs=R.filter(r=>sc(r).core.crit.length).length;
+  h+='<div class="grid g2"><div class="card"><h3>10 ข้อที่ต้องพัฒนาเร่งด่วน</h3><p class="sub">% ผ่านต่ำที่สุด</p>'+hbars(low.map(x=>({label:'<b>'+x.it.no+'</b> '+esc(x.it.s)+(x.it.c?' <span class="crit">★</span>':''),v:x.pct})))+'</div>'
+   +'<div class="card"><h3>Critical Points</h3><p class="sub">'+critRecs+' จาก '+R.length+' ครั้ง ('+Math.round(critRecs/R.length*100)+'%) มี Critical ที่พลาดอย่างน้อย 1 ข้อ</p>'+hbars(all.filter(x=>x.it.c).sort((a,b)=>(a.pct==null?101:a.pct)-(b.pct==null?101:b.pct)).map(x=>({label:'<b>'+x.it.no+'</b> '+esc(x.it.s),v:x.pct})))+'</div></div>';
+  h+='<div class="sec-h"><div><h2>ตารางรายข้อแยกกลุ่ม</h2></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="c">ข้อ</th><th>รายการ</th><th class="c">★</th><th class="c">รวม</th>'+G.map(g=>'<th class="c">'+g+'</th>').join('')+'<th class="num">N/A</th></tr></thead><tbody>';
+  let lastD=0;
+  CORE_ITEMS.forEach(it=>{ if(it.d!==lastD){ lastD=it.d; h+='<tr><td colspan="'+(5+G.length)+'" style="background:#F8FAFC;font-weight:700;color:'+CORE_DOMAINS[it.d].color+'">'+CORE_DOMAINS[it.d].code+' — '+esc(CORE_DOMAINS[it.d].th)+' · '+esc(CORE_DOMAINS[it.d].en)+'</td></tr>'; }
+    const a=itemStat(R,it.k);
+    h+='<tr><td class="c"><b>'+it.no+'</b></td><td>'+esc(it.t)+'</td><td class="c crit">'+(it.c?'★':'')+'</td><td class="c">'+heat(a.pct,a.n)+'</td>'+G.map(g=>{ const s=itemStat(R.filter(r=>unitGroup(r.ward)===g),it.k); return '<td class="c">'+heat(s.pct,s.n)+'</td>'; }).join('')+'<td class="num">'+(a.na||'')+'</td></tr>'; });
+  h+='</tbody></table></div>';
+  $('#p-items').innerHTML=h;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-im]'); if(!b) return; S.itemsMode=b.dataset.im; renderItems(); });
+
+/* ================================================================
+   TAB: DATA
+   ================================================================ */
+function dataRows(){
+  const q=S.dataQ.toLowerCase();
+  return poolYear().filter(r=>inGrp(r)).filter(r=>!S.dataRound||String(rRound(r))===S.dataRound).filter(r=>!S.dataMonth||String(r.date||'').slice(5,7)===S.dataMonth)
+    .filter(r=>!q||(String(r.ward)+' '+assessorText(r)+' '+(r.scenario||'')).toLowerCase().indexOf(q)>=0)
+    .sort((a,b)=>((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
+}
+function assessorText(r){ const a=Array.isArray(r.assessors)&&r.assessors.length?r.assessors.map(x=>x.name).filter(Boolean):[r.assessor].filter(Boolean); return a.join(', '); }
+function renderData(){
+  const rows=dataRows(), q=lsGet(LS.queue,[]).length, tr=lsGet(LS.trash,[]).length;
+  let h='<div class="sec-h"><div><h2>ข้อมูลการซ้อมทั้งหมด · '+yearLabel()+'</h2><p>คลิกแถวเพื่อดูรายงาน · แก้ไข / ลบ / พิมพ์ / แชร์ได้จากหน้ารายงาน</p></div><div class="sp"></div>'+grpChips()+'</div>'
+   +'<div class="row no-print" style="margin-bottom:12px;align-items:center">'
+   +'<input type="search" id="dataQ" placeholder="🔍 หน่วยงาน / ผู้ประเมิน / scenario" value="'+esc(S.dataQ)+'" style="max-width:280px">'
+   +'<select class="inp" id="dataRound" style="max-width:150px"><option value="">ทุกครั้ง</option><option value="1">ครั้งที่ 1</option><option value="2">ครั้งที่ 2</option><option value="3">ครั้งที่ 3</option></select>'
+   +'<select class="inp" id="dataMonth" style="max-width:150px"><option value="">ทุกเดือน</option>'+TH_MF.map((m,i)=>'<option value="'+pad2(i+1)+'">'+m+'</option>').join('')+'</select>'
+   +'<div class="sp" style="flex:1"></div>'
+   +'<button class="btn" id="btnXlsx">📊 Excel</button><button class="btn" id="btnCsv">⬇ CSV</button><button class="btn" id="btnJson">💾 สำรอง JSON</button><button class="btn" id="btnImp">⬆ นำเข้า JSON</button>'
+   +'<button class="btn" id="btnTrash">🗑 ถังขยะ ('+tr+')</button>'+(q?'<button class="btn red" id="btnFlush">☁ ซิงก์ค้าง '+q+'</button>':'')+'</div>';
+  h+='<div class="tbl-wrap" style="max-height:70vh"><table class="tbl"><thead><tr><th>วันที่</th><th>เวลา</th><th>หน่วยงาน</th><th>กลุ่ม</th><th class="c">ครั้งที่</th><th>ผู้ประเมิน</th><th class="num">บุคลากร</th><th class="num">Core</th><th class="num">ACLS</th><th>ผล</th><th class="c">★ พลาด</th><th></th></tr></thead><tbody>'
+   +(rows.length?rows.map(r=>{ const s=sc(r), g=unitGroup(r.ward), nc=s.core.crit.length+(s.acls?s.acls.crit.length:0);
+     return '<tr style="cursor:pointer" data-rec="'+esc(r._docId||r.id)+'"><td>'+fmtDate(r.date)+'</td><td>'+esc(r.time||'')+'</td><td><b>'+esc(r.ward)+'</b>'+(r._pending?' <span class="badge b-warn">รอซิงก์</span>':'')+'</td><td>'+grpBadge(g)+'</td><td class="c">'+rRound(r)+'</td><td class="small">'+esc(assessorText(r))+'</td><td class="num">'+esc(r.staffCount||'')+'</td><td class="num">'+pctBadge(s.core.pct)+'</td><td class="num">'+(s.acls?pctBadge(s.acls.pct):'<span class="muted">–</span>')+'</td><td>'+(s.pass?'<span class="badge b-pass">ผ่าน</span>':'<span class="badge b-fail">ไม่ผ่าน</span>')+'</td><td class="c">'+(nc?'<span class="crit">'+nc+'</span>':'')+'</td>'
+      +'<td style="white-space:nowrap"><button class="btn sm" data-edit="'+esc(r._docId||r.id)+'" title="แก้ไข">✏️</button> <button class="btn sm" data-del="'+esc(r._docId||r.id)+'" title="ลบ">🗑</button></td></tr>'; }).join(''):'<tr><td colspan="12" class="empty">ไม่พบข้อมูลตามเงื่อนไข</td></tr>')
+   +'</tbody></table></div><p class="small muted">แสดง '+rows.length+' รายการ</p>';
+  $('#p-data').innerHTML=h;
+  $('#dataRound').value=S.dataRound; $('#dataMonth').value=S.dataMonth;
+}
+document.addEventListener('input',e=>{ if(e.target.id==='dataQ'){ S.dataQ=e.target.value; const p=e.target.selectionStart; renderData(); const n=$('#dataQ'); n.focus(); n.setSelectionRange(p,p); } });
+document.addEventListener('change',e=>{ if(e.target.id==='dataRound'){ S.dataRound=e.target.value; renderData(); } if(e.target.id==='dataMonth'){ S.dataMonth=e.target.value; renderData(); } });
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.edit){ const r=findRec(t.dataset.edit); if(r){ closeModal(); editRec(r); } }
+  else if(t.dataset.del){ const r=findRec(t.dataset.del); if(r&&confirm('ลบรายการ '+r.ward+' · '+fmtDate(r.date)+' ('+(sc(r).core.pct)+'%) ?\nกู้คืนได้จากถังขยะในเครื่องนี้')){ closeModal(); deleteRec(r); } }
+  else if(t.id==='btnCsv') exportCSV(); else if(t.id==='btnXlsx') exportXLSX(); else if(t.id==='btnJson') exportJSON();
+  else if(t.id==='btnImp') $('#fileImport').click(); else if(t.id==='btnFlush') flushQueue(true); else if(t.id==='btnTrash') showTrash();
+});
+const findRec=id=>S.all.find(r=>String(r._docId||r.id)===String(id));
+
+/* ---------- record report ---------- */
+function repHTML(r){
+  const s=sc(r), g=unitGroup(r.ward), scn=r.scenario&&SCN_BY[r.scenario];
+  const res=a=>a==='pass'?'<span class="ok">✔ ผ่าน</span>':a==='fail'?'<span class="no">✖ ไม่ผ่าน</span>':a==='na'?'<span class="na">N/A</span>':'<span class="na">–</span>';
+  let h='<div class="rep"><h2>ผลการซ้อม Code 8 · '+esc(r.ward)+'</h2>'
+   +'<div class="meta"><div><b>วันที่:</b> '+fmtDate(r.date,true)+' '+esc(r.time||'')+'</div><div><b>ครั้งที่:</b> '+esc(r.round||roundLabel(rRound(r)))+'</div><div><b>กลุ่ม:</b> '+g+(unitSetting(r.ward)?' · '+SETTINGS[unitSetting(r.ward)]:'')+'</div>'
+   +'<div><b>บุคลากร:</b> '+esc(r.staffCount||'–')+' คน</div><div style="grid-column:span 2"><b>ผู้ประเมิน:</b> '+esc((r.assessors||[]).map(a=>a.name+(a.role?' ('+a.role+')':'')).join(', ')||r.assessor||'–')+'</div>'
+   +(scn?'<div style="grid-column:1/-1"><b>Scenario:</b> '+esc(scn.k+' — '+scn.t)+'<br><span class="small muted">'+esc(scn.path)+'</span></div>':'')+'</div>';
+  h+='<table><tr><th>ส่วน</th><th>คะแนน</th><th>ร้อยละ</th><th>ผล</th></tr><tr><td>Core 28 ข้อ</td><td>'+s.core.e+' / '+s.core.m+(s.core.na?' (N/A '+s.core.na+')':'')+'</td><td><b>'+s.core.pct+'%</b></td><td>'+(s.corePass?'<span class="ok">ผ่าน</span>':'<span class="no">ไม่ผ่าน</span>')+'</td></tr>'
+   +(s.acls?'<tr><td>ACLS Module 18 ข้อ</td><td>'+s.acls.e+' / '+s.acls.m+(s.acls.na?' (N/A '+s.acls.na+')':'')+'</td><td><b>'+s.acls.pct+'%</b></td><td>'+(s.aclsPass?'<span class="ok">ผ่าน</span>':'<span class="no">ไม่ผ่าน</span>')+'</td></tr><tr><td colspan="3"><b>ผลรวม (ต้องผ่านทั้งสองส่วน)</b></td><td>'+(s.pass?'<span class="ok">ผ่าน</span>':'<span class="no">ไม่ผ่าน</span>')+'</td></tr>':'')+'</table>';
+  h+='<table><tr><th>ด้าน</th><th>คะแนน</th><th>ร้อยละ</th></tr>'+[1,2,3,4,5].map(d=>{ const x=s.core.doms[d]||{e:0,m:0}; return '<tr><td>'+CORE_DOMAINS[d].code+' '+esc(CORE_DOMAINS[d].en)+'</td><td>'+x.e+' / '+x.m+'</td><td>'+(x.m?Math.round(x.e/x.m*100)+'%':'–')+'</td></tr>'; }).join('')+'</table>';
+  if(Object.keys(r.scores||{}).length){
+    h+='<table><tr><th style="width:44px">ข้อ</th><th>รายการ (Core)</th><th style="width:90px">ผล</th></tr>'+CORE_ITEMS.map(it=>'<tr><td><b>'+it.no+'</b></td><td>'+esc(it.t)+(it.c?' <span class="crit">★</span>':'')+'</td><td>'+res(r.scores[it.k])+'</td></tr>').join('')+'</table>';
+  } else h+='<p class="note small">รายการนี้บันทึกเฉพาะคะแนนรวม (ไม่มีผลรายข้อ)</p>';
+  if(s.acls) h+='<table><tr><th style="width:44px">ข้อ</th><th>ACLS Module</th><th style="width:90px">ผล</th></tr>'+ACLS_ITEMS.map(it=>'<tr><td><b>'+it.no+'</b></td><td>'+esc(it.t)+(it.c?' <span class="crit">★</span>':'')+'</td><td>'+res(r.acls.scores[it.k])+'</td></tr>').join('')+'</table>';
+  const t=r.times||{}; if(Object.values(t).some(v=>v!=null)) h+='<table><tr><th>เริ่มกดหน้าอก</th><th>Shock แรก</th><th>IV/IO</th><th>Epinephrine แรก</th><th>CCF</th></tr><tr><td>'+mmss(t.cpr)+'</td><td>'+mmss(t.shock)+'</td><td>'+mmss(t.iv)+'</td><td>'+mmss(t.epi)+'</td><td>'+(t.ccf!=null?t.ccf+'%':'–')+'</td></tr></table>';
+  const crit=s.core.crit.map(k=>CORE_BY[k].no+' '+CORE_BY[k].s).concat(s.acls?s.acls.crit.map(k=>k+' '+ACLS_BY[k].s):[]);
+  if(crit.length) h+='<p><b class="crit">★ Critical ที่ต้องพัฒนา:</b> '+esc(crit.join(' · '))+'</p>';
+  const ec=EXTRA_CHECKS.map(c=>{ const v=(r.extraChecks||{})[c.key]||{}; return v.status?c.short+': '+v.status+(v.note?' ('+v.note+')':''):''; }).filter(Boolean);
+  if(ec.length) h+='<p><b>ตรวจสอบเพิ่มเติม:</b> '+esc(ec.join(' · '))+'</p>';
+  const rm=r.remarks||{}; const rl=[['d1','D1'],['d2','D2'],['d3','D3'],['d4','D4'],['d5','D5'],['acls','ACLS'],['overall','สรุป / Plus–Delta']].filter(x=>rm[x[0]]);
+  if(rl.length) h+='<table><tr><th style="width:120px">หมายเหตุ</th><th>รายละเอียด</th></tr>'+rl.map(x=>'<tr><td>'+x[1]+'</td><td>'+esc(rm[x[0]]).replace(/\n/g,'<br>')+'</td></tr>').join('')+'</table>';
+  if(r.remedialDate) h+='<p><b>วันนัดซ้อมซ่อม:</b> '+fmtDate(r.remedialDate,true)+'</p>';
+  return h+'</div>';
+}
+function showRec(id){
+  const r=findRec(id); if(!r) return;
+  openModal('📄 รายงานผลการซ้อม',repHTML(r),
+    '<button class="btn" onclick="printRec(\''+esc(id)+'\')">🖨 พิมพ์ / PDF</button><button class="btn" onclick="shareLine(\''+esc(id)+'\')">💬 แชร์ LINE</button><button class="btn" onclick="copySummary(\''+esc(id)+'\')">📋 คัดลอกสรุป</button><button class="btn" data-edit="'+esc(id)+'">✏️ แก้ไข</button><button class="btn" data-del="'+esc(id)+'">🗑 ลบ</button><button class="btn pri" onclick="closeModal()">ปิด</button>');
+}
+function printHTML(title,inner){
+  const w=window.open('','_blank'); if(!w){ toast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
+  const css=document.querySelector('style').textContent;
+  w.document.write('<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>'+esc(title)+'</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>'+css+' body{background:#fff;padding:14px;font-size:12.5px} .rep table{font-size:11.5px}</style></head><body>'
+    +'<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #0F2A5F;padding-bottom:8px;margin-bottom:10px"><img src="'+$('.logo img').src+'" style="height:34px"><div><b style="font-size:15px;color:#0F2A5F">'+esc(title)+'</b><div style="font-size:11px;color:#64748B">ฝ่ายวิชาการพยาบาล และ Clinical Nurse Educator โรงพยาบาลกรุงเทพ สำนักงานใหญ่</div></div></div>'
+    +inner+'<div style="display:flex;justify-content:space-around;margin-top:34px;font-size:12px;text-align:center"><div>ลงชื่อ ..................................................<br>ผู้ประเมิน</div><div>ลงชื่อ ..................................................<br>หัวหน้าหน่วยงาน</div></div>'
+    +'<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>');
+  w.document.close();
+}
+function printRec(id){ const r=findRec(id); if(r) printHTML('รายงานผลการซ้อม Code 8 — '+r.ward,repHTML(r)); }
+function summaryText(r){ const s=sc(r); const cr=s.core.crit.map(k=>CORE_BY[k].no).concat(s.acls?s.acls.crit:[]);
+  return '🏥 Code 8 Drill — '+r.ward+'\n📅 '+fmtDate(r.date,true)+' '+(r.time||'')+' · '+(r.round||roundLabel(rRound(r)))
+   +'\n✅ Core 28 ข้อ: '+s.core.pct+'% '+(s.corePass?'(ผ่าน)':'(ไม่ผ่าน)')+(s.acls?'\n❤️ ACLS Module: '+s.acls.pct+'% '+(s.aclsPass?'(ผ่าน)':'(ไม่ผ่าน)'):'')
+   +'\n'+[1,2,3,4,5].map(d=>{const x=s.core.doms[d]||{e:0,m:0}; return CORE_DOMAINS[d].code+' '+(x.m?Math.round(x.e/x.m*100):0)+'%';}).join(' · ')
+   +(cr.length?'\n★ Critical ที่ต้องพัฒนา: '+cr.join(', '):'')+(r.remedialDate?'\n📌 นัดซ้อมซ่อม: '+fmtDate(r.remedialDate,true):'')+'\n👥 ผู้ประเมิน: '+assessorText(r); }
+function shareLine(id){ const r=findRec(id); if(r) window.open('https://line.me/R/msg/text/?'+encodeURIComponent(summaryText(r)),'_blank'); }
+function copySummary(id){ const r=findRec(id); if(!r) return; const t=summaryText(r);
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('📋 คัดลอกสรุปแล้ว')).catch(()=>{ prompt('คัดลอกข้อความนี้',t); }); }
+
+/* ---------- export / import ---------- */
+function flatRows(rows){
+  return rows.map(r=>{ const s=sc(r), o={
+    'วันที่':r.date||'','เวลา':r.time||'','ปี (พ.ศ.)':rYear(r)?BE(rYear(r)):'','หน่วยงาน':r.ward||'','กลุ่ม':unitGroup(r.ward),'Setting':unitSetting(r.ward)?SETTINGS[unitSetting(r.ward)]:'',
+    'กลุ่มรายงาน':scopeOf(r)==='EXTRA'?'นอกสังกัด':'NSO','ครั้งที่':rRound(r),'ผู้ประเมิน':assessorText(r),'บุคลากร':r.staffCount||'',
+    'Core คะแนน':s.core.e,'Core เต็ม':s.core.m,'Core %':s.core.pct,'Core ผล':s.corePass?'ผ่าน':'ไม่ผ่าน'};
+    [1,2,3,4,5].forEach(d=>{ const x=s.core.doms[d]||{e:0,m:0}; o[CORE_DOMAINS[d].code+' %']=x.m?Math.round(x.e/x.m*100):''; });
+    o['ACLS %']=s.acls?s.acls.pct:''; o['ACLS ผล']=s.acls?(s.aclsPass?'ผ่าน':'ไม่ผ่าน'):''; o['ผลรวม']=s.pass?'ผ่าน':'ไม่ผ่าน';
+    o['Scenario']=r.scenario||''; const t=r.times||{}; o['เริ่มกด (วินาที)']=t.cpr==null?'':t.cpr; o['Shock แรก (วินาที)']=t.shock==null?'':t.shock; o['IV/IO (วินาที)']=t.iv==null?'':t.iv; o['Epi แรก (วินาที)']=t.epi==null?'':t.epi; o['CCF %']=t.ccf==null?'':t.ccf;
+    o['Critical ที่พลาด']=s.core.crit.map(k=>CORE_BY[k].no).concat(s.acls?s.acls.crit:[]).join(', ');
+    EXTRA_CHECKS.forEach(c=>{ o[c.short]=((r.extraChecks||{})[c.key]||{}).status||''; });
+    o['วันนัดซ่อม']=r.remedialDate||''; o['หมายเหตุ']=((r.remarks||{}).overall)||'';
+    const mark=a=>a==='pass'?4:a==='fail'?0:a==='na'?'N/A':'';
+    CORE_ITEMS.forEach(it=>{ o[it.no+' '+it.s]=mark((r.scores||{})[it.k]); });
+    ACLS_ITEMS.forEach(it=>{ o['ACLS '+it.no+' '+it.s]=s.acls?mark(r.acls.scores[it.k]):''; });
+    return o; });
+}
+function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+function exportCSV(){ const rows=flatRows(dataRows()); if(!rows.length){ toast('ไม่มีข้อมูล'); return; }
+  const cols=Object.keys(rows[0]); const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  dl(new Blob(['﻿'+cols.map(q).join(',')+'\n'+rows.map(r=>cols.map(c=>q(r[c])).join(',')).join('\n')],{type:'text/csv;charset=utf-8'}),'Code8_'+BE(S.year)+'_'+isoDate(new Date())+'.csv'); }
+function exportJSON(){ const all=S.all.map(cleanForCloud); dl(new Blob([JSON.stringify(all,null,1)],{type:'application/json'}),'Code8_Backup_ทุกปี_'+isoDate(new Date())+'.json'); toast('💾 สำรองข้อมูลทุกปี '+all.length+' รายการ'); }
+function loadScript(src){ return new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=no; document.head.appendChild(s); }); }
+async function exportXLSX(){
+  const rows=dataRows(); if(!rows.length){ toast('ไม่มีข้อมูล'); return; }
+  try{ if(!window.XLSX){ toast('⏳ กำลังเตรียมไฟล์ Excel…'); await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'); } }
+  catch(e){ toast('โหลดตัวสร้าง Excel ไม่ได้ — ส่งออกเป็น CSV แทน'); exportCSV(); return; }
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(flatRows(rows)),'ข้อมูลการซ้อม');
+  const um=unitMap(poolYear());
+  const st=Object.values(um).filter(u=>S.grp==='ALL'||u.group===S.grp).sort((a,b)=>a.group.localeCompare(b.group)||a.name.localeCompare(b.name)).map(u=>({'หน่วยงาน':u.name,'กลุ่ม':u.group,
+    'ครั้งที่ 1 (%)':u.rounds[1]?sc(u.rounds[1]).core.pct:'-','ครั้งที่ 2 (%)':u.rounds[2]?sc(u.rounds[2]).core.pct:'-','ครั้งที่ 3 (%)':u.rounds[3]?sc(u.rounds[3]).core.pct:'-',
+    'ACLS ล่าสุด (%)':u.aclsPct==null?'':u.aclsPct,'ผลการประเมิน':u.pass?'ผ่าน':'ไม่ผ่าน','สถานะ':ST[u.code][0],'KPI Score':u.kpi==null?'ระหว่างซ่อม':u.kpi}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(st),'สถานะ & KPI Score');
+  const R=rows.filter(r=>rRound(r)===1);
+  const it=CORE_ITEMS.map(i=>{ const o={'ข้อ':i.no,'รายการ':i.t,'Critical':i.c?'★':''}; const a=itemStat(R,i.k); o['รวม % ผ่าน (ครั้งที่ 1)']=a.pct==null?'':Math.round(a.pct);
+    GROUPS.forEach(g=>{ const x=itemStat(R.filter(r=>unitGroup(r.ward)===g),i.k); o[g+' %']=x.pct==null?'':Math.round(x.pct); }); o['N/A']=a.na; return o; });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(it),'รายข้อ Core (ครั้งที่ 1)');
+  XLSX.writeFile(wb,'Code8_'+BE(S.year)+'_'+isoDate(new Date())+'.xlsx');
+}
+$('#fileImport').addEventListener('change',async e=>{
+  const files=[...e.target.files]; e.target.value=''; if(!files.length) return;
+  let recs=[],bad=[];
+  for(const f of files){ try{ const j=JSON.parse(await f.text()); const arr=Array.isArray(j)?j:(j.records||j.history||j.data||[]); arr.forEach(r=>{ if(r&&r.ward&&r.date) recs.push(r); }); }catch(err){ bad.push(f.name); } }
+  const key=r=>String(r.id||'')||(wkey(r.ward)+'|'+r.date+'|'+(r.time||''));
+  const have=new Set(S.all.map(key)), haveAlt=new Set(S.all.map(r=>wkey(r.ward)+'|'+r.date+'|'+(r.time||'')));
+  const seen=new Set(); const fresh=recs.filter(r=>{ const k=key(r), k2=wkey(r.ward)+'|'+r.date+'|'+(r.time||''); if(have.has(k)||haveAlt.has(k2)||seen.has(k2)) return false; seen.add(k2); return true; });
+  window._imp=fresh;
+  openModal('⬆ นำเข้าข้อมูล JSON','<p>อ่านได้ <b>'+recs.length+'</b> รายการ จาก '+files.length+' ไฟล์ · <b style="color:#15803D">ใหม่ '+fresh.length+'</b> · ซ้ำ (ข้าม) '+(recs.length-fresh.length)+(bad.length?' · <span class="crit">อ่านไม่ได้: '+esc(bad.join(', '))+'</span>':'')+'</p>'
+    +(fresh.length?'<div class="tbl-wrap" style="max-height:300px"><table class="tbl"><thead><tr><th>วันที่</th><th>หน่วยงาน</th><th>ครั้งที่</th><th class="num">%</th></tr></thead><tbody>'+fresh.map(r=>'<tr><td>'+fmtDate(r.date)+'</td><td>'+esc(r.ward)+'</td><td>'+rRound(r)+'</td><td class="num">'+esc(r.pct)+'</td></tr>').join('')+'</tbody></table></div><p class="note small" style="margin-top:10px">ข้อมูลใหม่จะถูกบันทึกขึ้นฐานข้อมูลกลาง (Firestore) และทุกคนจะเห็นทันที</p>':''),
+    fresh.length?'<button class="btn" onclick="closeModal()">ยกเลิก</button><button class="btn pri" onclick="confirmImport()">✅ ยืนยันนำเข้า '+fresh.length+' รายการ</button>':'<button class="btn" onclick="closeModal()">ปิด</button>');
+});
+function confirmImport(){ const fr=window._imp||[]; fr.forEach((r,i)=>{ const o=cleanForCloud(r); if(!o.id) o.id=Date.now()+i; writeRec(o); }); closeModal(); toast('⬆ นำเข้า '+fr.length+' รายการ'); }
+function showTrash(){
+  const tr=lsGet(LS.trash,[]);
+  openModal('🗑 ถังขยะ (เก็บในเครื่องนี้ 100 รายการล่าสุด)',tr.length?'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ลบเมื่อ</th><th>วันที่ซ้อม</th><th>หน่วยงาน</th><th class="num">%</th><th></th></tr></thead><tbody>'+tr.map((r,i)=>'<tr><td class="small">'+new Date(r._deletedAt).toLocaleString('th-TH')+'</td><td>'+fmtDate(r.date)+'</td><td>'+esc(r.ward)+'</td><td class="num">'+esc(r.pct)+'</td><td><button class="btn sm" onclick="restoreTrash('+i+')">↩ กู้คืน</button></td></tr>').join('')+'</tbody></table></div>':'<div class="empty">ถังขยะว่าง</div>','<button class="btn" onclick="closeModal()">ปิด</button>');
+}
+function restoreTrash(i){ const tr=lsGet(LS.trash,[]); const r=tr.splice(i,1)[0]; lsSet(LS.trash,tr); if(r){ delete r._deletedAt; lsSet(LS.delq,lsGet(LS.delq,[]).filter(x=>x!==String(r.id))); writeRec(r); toast('↩ กู้คืนแล้ว'); } showTrash(); }
+
+/* ================================================================
+   TAB: FORM (ลงคะแนน)
+   ================================================================ */
+let F=null;
+function newForm(){ const d=new Date(); F={id:null,orig:null,date:isoDate(d),time:hhmm(d),wardSel:'',wardOther:'',round:1,staffCount:'',scope:'NSO',remedialDate:'',
+  assessors:[{name:'',role:''}],scores:{},acls:{},scenario:'',times:{cpr:'',shock:'',iv:'',epi:'',ccf:''},extra:{},remarks:{},miss:new Set()}; }
+const fWard=()=>F.wardSel==='__other'?F.wardOther.trim():F.wardSel;
+function wardOptions(sel){
+  const grp=(label,arr)=>'<optgroup label="'+esc(label)+'">'+arr.map(n=>'<option value="'+esc(n)+'"'+(n===sel?' selected':'')+'>'+esc(n)+'</option>').join('')+'</optgroup>';
+  return '<option value="">— เลือกหน่วยงาน —</option>'+grp('Critical Care (Core + ACLS Module)',CCD_UNITS.map(u=>u.n))+grp('IPD ผู้ป่วยใน',IPD_UNITS)+grp('OPD / คลินิก',OPD_UNITS)
+    +grp('วิกฤตเด็ก (Core เท่านั้น)',PED_CRITICAL)+grp('นอกสังกัด NSO (แยกรายงาน)',EXTRA_UNITS)+'<optgroup label="อื่น ๆ"><option value="__other"'+(sel==='__other'?' selected':'')+'>อื่น ๆ (ระบุชื่อ)</option></optgroup>';
+}
+function itemRow(set,it,ans){
+  const a=ans[it.k], auto=set==='acls'&&it.na==='lt3shock'&&autoNA();
+  return '<div class="item'+(F.miss.has(set+it.k)?' miss':'')+'" id="it-'+set+'-'+it.k+'"><div class="no">'+it.no+'</div><div class="tx">'+esc(it.t)+(it.c?'<span class="cr">★ Critical</span>':'')
+   +(auto?' <span class="badge b-mute">N/A อัตโนมัติ (scenario ไม่ถึงช็อกครั้งที่ 3)</span>':'')
+   +'<details><summary>ดูเกณฑ์ผ่าน / ไม่ผ่าน'+(it.ccd&&isAcls(fWard())?' · การปรับใช้ใน CCD':'')+'</summary><div class="crit-box"><div class="p">✔ ผ่าน: '+esc(it.pass)+'</div><div class="f">✖ ไม่ผ่าน: '+esc(it.fail)+'</div>'+(it.ccd&&isAcls(fWard())?'<div class="c">❤️ CCD: '+esc(it.ccd)+'</div>':'')+'</div></details></div>'
+   +'<div class="ans" role="group" aria-label="ผลข้อ '+it.no+'"><button class="p'+(a==='pass'?' on':'')+'" data-ans="'+set+'|'+it.k+'|pass"'+(auto?' disabled':'')+'>✔ ผ่าน</button><button class="f'+(a==='fail'?' on':'')+'" data-ans="'+set+'|'+it.k+'|fail"'+(auto?' disabled':'')+'>✖ ไม่ผ่าน</button><button class="n'+(a==='na'?' on':'')+'" data-ans="'+set+'|'+it.k+'|na"'+(it.c?' disabled title="ข้อ Critical ไม่อนุญาต N/A"':'')+(auto?' disabled':'')+'>N/A</button></div></div>';
+}
+function autoNA(){ const s=SCN_BY[F.scenario]; return !!(s&&s.shocks<3&&!s.tdp); }
+function applyAutoNA(){ if(autoNA()) F.acls.B3='na'; else if(F.acls.B3==='na'&&F._autoB3) delete F.acls.B3; F._autoB3=autoNA(); }
+function domBlock(set,dk,dom,items,ans){
+  const sc_=scoreSet(items.filter(i=>i.d==dk),ans);
+  return '<div class="dom"><div class="dom-h" style="--dc:'+dom.color+'" data-tog="'+set+dk+'"><div><div class="t">'+(set==='core'?dom.code+' — '+esc(dom.th):'ACLS '+dk+' — '+esc(dom.th))+'</div><div class="s">'+(set==='core'?esc(dom.en)+' · ':'')+items.filter(i=>i.d==dk).length+' ข้อ</div></div><div class="sc" id="ds-'+set+dk+'">'+sc_.e+'/'+sc_.m+'</div></div>'
+   +'<div id="db-'+set+dk+'">'+items.filter(i=>i.d==dk).map(it=>itemRow(set,it,ans)).join('')
+   +(set==='core'||dk==='E'?'<div style="padding:8px 16px 12px"><textarea data-rm="'+(set==='core'?'d'+dk:'acls')+'" placeholder="หมายเหตุ / ประเด็น debriefing'+(set==='core'?' ('+dom.code+')':' (ACLS Module)')+'">'+esc(F.remarks[set==='core'?'d'+dk:'acls']||'')+'</textarea></div>':'')+'</div></div>';
+}
+function renderForm(){
+  if(!F) newForm();
+  const ward=fWard(), acls=isAcls(ward), set=unitSetting(ward);
+  let h='';
+  if(F.id) h+='<div class="editbar">✏️ <b>กำลังแก้ไข</b> รายการ '+esc(F.orig.ward)+' · '+fmtDate(F.orig.date)+' — กดบันทึกเพื่อแทนที่ข้อมูลเดิม<span style="flex:1"></span><button class="btn sm" id="fCancel">ยกเลิกการแก้ไข</button></div>';
+  h+='<div class="sec-h" style="margin-top:0"><div><h2>📝 ลงคะแนนการซ้อม Code 8</h2><p>Core 28 ข้อ ใช้กับทุกหน่วยงาน · หน่วย Critical Care ประเมิน ACLS Module 18 ข้อเพิ่ม · คะแนน ผ่าน = 4 / ไม่ผ่าน = 0 · ข้อ ★ Critical ห้าม N/A</p></div></div>';
+  h+='<div class="card"><div class="form-grid">'
+   +'<div class="fld"><label for="fDate">วันที่ซ้อม</label><input type="date" id="fDate" value="'+esc(F.date)+'"></div>'
+   +'<div class="fld"><label for="fTime">เวลา</label><input type="time" id="fTime" value="'+esc(F.time)+'"></div>'
+   +'<div class="fld" style="grid-column:span 2"><label for="fWard">หน่วยงานที่ถูกประเมิน</label><select class="inp" id="fWard">'+wardOptions(F.wardSel)+'</select>'
+   +(F.wardSel==='__other'?'<input type="text" id="fWardOther" placeholder="ระบุชื่อหน่วยงาน" value="'+esc(F.wardOther)+'" style="margin-top:6px">':'')+'<div class="hint" id="fWardHint">'+wardHint()+'</div></div>'
+   +'<div class="fld"><label for="fRound">ครั้งที่</label><select class="inp" id="fRound">'+[1,2,3].map(n=>'<option value="'+n+'"'+(F.round===n?' selected':'')+'>'+roundLabel(n)+'</option>').join('')+'</select></div>'
+   +'<div class="fld"><label for="fStaff">จำนวนบุคลากรที่ร่วมซ้อม</label><input type="number" min="0" id="fStaff" value="'+esc(F.staffCount)+'"></div>'
+   +'<div class="fld"><label for="fScope">กลุ่มรายงาน</label><select class="inp" id="fScope"><option value="NSO"'+(F.scope==='NSO'?' selected':'')+'>ฝ่ายการพยาบาล (NSO)</option><option value="EXTRA"'+(F.scope==='EXTRA'?' selected':'')+'>นอกสังกัด NSO (แยกรายงาน)</option></select></div>'
+   +'<div class="fld"><label for="fRem">วันนัดซ้อมซ่อม (ถ้ามี)</label><input type="date" id="fRem" value="'+esc(F.remedialDate)+'"></div>'
+   +'</div>'
+   +'<div class="fld" style="margin-top:12px"><label>ผู้ประเมิน</label><div id="fAss">'+F.assessors.map((a,i)=>'<div class="assr"><select class="inp" data-assn="'+i+'"><option value="">— ชื่อผู้ประเมิน —</option>'+ASSESSOR_TEAM.map(x=>'<option'+(x.name===a.name?' selected':'')+'>'+esc(x.name)+'</option>').join('')+(a.name&&!ASSESSOR_TEAM.some(x=>x.name===a.name)?'<option selected>'+esc(a.name)+'</option>':'')+'</select><select class="inp" data-assr="'+i+'"><option value="">— ตำแหน่ง —</option>'+ASSESSOR_ROLES.map(x=>'<option'+(x===a.role?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select><button class="btn sm" data-assdel="'+i+'" title="ลบ">✕</button></div>').join('')+'</div>'
+   +'<button class="btn sm" id="fAssAdd">+ เพิ่มผู้ประเมิน</button> <button class="btn sm" id="fAssAll">เลือกทั้งทีม</button></div></div>';
+  if(acls){
+    const sc=SCN_BY[F.scenario];
+    const rec=SCENARIOS.filter(s=>s.set===set||(set==='CCU'&&s.set==='ICU')), oth=SCENARIOS.filter(s=>rec.indexOf(s)<0);
+    const o=s=>'<option value="'+s.k+'"'+(F.scenario===s.k?' selected':'')+'>'+s.k+' · '+esc(s.t)+'</option>';
+    h+='<div class="scn"><div class="form-grid"><div class="fld" style="grid-column:span 2"><label for="fScn">Scenario (ทุก scenario เริ่มด้วย VF/pVT)</label><select class="inp" id="fScn"><option value="">— เลือก scenario —</option><optgroup label="แนะนำสำหรับ '+SETTINGS[set]+'">'+rec.map(o).join('')+'</optgroup><optgroup label="อื่น ๆ">'+oth.map(o).join('')+'</optgroup></select>'
+     +(sc?'<div class="hint"><b>ลำดับเหตุการณ์:</b> '+esc(sc.path)+'</div>':'<div class="hint">หมุนเวียน scenario ให้แต่ละหน่วยครบตลอดปี</div>')+'</div>'
+     +'<div class="fld" style="grid-column:span 2"><label>เวลามาตรฐาน (นาที:วินาที นับจาก T0 ผู้ป่วยหมดสติ) — ไม่บังคับ</label><div class="row" style="gap:6px">'
+     +[['cpr','เริ่มกด'],['shock','Shock แรก'],['iv','IV/IO'],['epi','Epi แรก']].map(x=>'<input type="text" inputmode="numeric" data-time="'+x[0]+'" placeholder="'+x[1]+' 0:00" value="'+esc(F.times[x[0]])+'" style="width:110px" aria-label="'+x[1]+'">').join('')
+     +'<input type="number" min="0" max="100" data-time="ccf" placeholder="CCF %" value="'+esc(F.times.ccf)+'" style="width:90px" aria-label="CCF %"></div></div></div></div>';
+  }
+  h+='<div class="sec-h"><div><h2>Core 28 ข้อ</h2><p>ใช้เกณฑ์เดียวกันทุกหน่วยงาน'+(acls?' · กด “ดูเกณฑ์” เพื่อดูการปรับใช้ใน CCD':'')+'</p></div></div>';
+  for(const d of [1,2,3,4,5]) h+=domBlock('core',d,CORE_DOMAINS[d],CORE_ITEMS,F.scores);
+  if(acls){ h+='<div class="sec-h"><div><h2>❤️ ACLS Module 18 ข้อ</h2><p>เฉพาะหน่วย Critical Care · ผ่านเมื่อ ≥ 80% · ต้องผ่านทั้ง Core และ ACLS</p></div></div>';
+    for(const d of Object.keys(ACLS_DOMAINS)) h+=domBlock('acls',d,ACLS_DOMAINS[d],ACLS_ITEMS,F.acls); }
+  h+='<div class="card" style="margin-top:14px"><h3>การตรวจสอบเพิ่มเติม (ไม่นับรวมคะแนน)</h3><p class="sub">ใช้วิเคราะห์ความพร้อมของอุปกรณ์</p>'
+   +EXTRA_CHECKS.map(c=>{ const v=F.extra[c.key]||{}; return '<div class="row" style="align-items:center;margin-bottom:8px"><div style="flex:1;min-width:220px"><b>'+esc(c.label)+'</b><div class="small muted">'+esc(c.hint)+'</div></div><div class="chips">'+['ครบ','ไม่ครบ'].map(s=>'<button class="chip'+(v.status===s?' on':'')+'" data-ec="'+c.key+'|'+s+'">'+(s==='ครบ'?'✔ ครบ':'✖ ไม่ครบ')+'</button>').join('')+'</div>'+(v.status==='ไม่ครบ'?'<input type="text" data-ecn="'+c.key+'" placeholder="ระบุสิ่งที่ไม่ครบ" value="'+esc(v.note||'')+'" style="max-width:320px">':'')+'</div>'; }).join('')
+   +'<div class="fld" style="margin-top:8px"><label>สรุปภาพรวม / Plus–Delta</label><textarea data-rm="overall" placeholder="จุดแข็ง (Plus) และสิ่งที่ต้องพัฒนา (Delta)">'+esc(F.remarks.overall||'')+'</textarea></div></div>';
+  h+='<div class="scorebar" id="scoreBar"></div>';
+  $('#p-form').innerHTML=h; updateScoreBar();
+}
+function wardHint(){
+  const w=fWard(); if(!w) return 'เลือกหน่วยงานเพื่อให้ระบบแนะนำครั้งที่อัตโนมัติ';
+  const y=parseInt(F.date,10)||new Date().getFullYear(), g=unitGroup(w);
+  const prev=S.all.filter(r=>scopeOf(r)===F.scope&&rYear(r)===y&&wkey(canonUnit(r.ward))===wkey(canonUnit(w))&&(!F.id||String(r.id)!==String(F.id)));
+  const rs=[...new Set(prev.map(rRound))].sort();
+  return grpBadge(g)+(isAcls(w)?' <span class="badge b-ccd">ACLS Module · '+SETTINGS[unitSetting(w)]+'</span>':'')+' '+(rs.length?'ปี '+BE(y)+' ซ้อมแล้ว: '+rs.map(n=>{ const r=prev.filter(x=>rRound(x)===n).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0]; return 'ครั้งที่ '+n+' ('+sc(r).core.pct+'%)'; }).join(' · '):'ยังไม่เคยซ้อมในปี '+BE(y));
+}
+function suggestRound(){ const w=fWard(); if(!w||F.id) return; const y=parseInt(F.date,10);
+  const rs=S.all.filter(r=>scopeOf(r)===F.scope&&rYear(r)===y&&wkey(canonUnit(r.ward))===wkey(canonUnit(w))).map(rRound);
+  F.round=rs.length?Math.min(Math.max(...rs)+1,3):1; }
+function updateScoreBar(){
+  const c=scoreSet(CORE_ITEMS,F.scores), acls=isAcls(fWard()), a=acls?scoreSet(ACLS_ITEMS,F.acls):null;
+  for(const d of [1,2,3,4,5]){ const x=c.doms[d], el=$('#ds-core'+d); if(el) el.textContent=x.e+'/'+x.m; }
+  if(a) for(const d of Object.keys(ACLS_DOMAINS)){ const x=a.doms[d], el=$('#ds-acls'+d); if(el) el.textContent=x.e+'/'+x.m; }
+  const pass=c.pct!=null&&c.pct>=80&&(!a||(a.pct!=null&&a.pct>=80));
+  const done=c.answered===28&&(!a||a.answered===18);
+  const blk=(l,v,opt)=>'<div class="blk'+(opt?' opt':'')+'"><span class="l">'+l+'</span><span class="v">'+v+'</span></div>';
+  $('#scoreBar').innerHTML=blk('Core 28 ข้อ',c.answered?c.e+'/'+c.m+' · '+c.pct+'%':'–')+blk('ประเมินแล้ว',c.answered+'/28',1)
+   +(a?blk('ACLS 18 ข้อ',a.answered?a.e+'/'+a.m+' · '+a.pct+'%':'–')+blk('ประเมินแล้ว',a.answered+'/18',1):'')
+   +blk('★ พลาด',c.crit.length+(a?a.crit.length:0))
+   +'<div class="blk"><span class="l">ผลเบื้องต้น</span><span class="v">'+(c.answered?(pass?'✔ ผ่าน':'✖ ไม่ผ่าน'):'รอประเมิน')+'</span></div><div class="sp"></div>'
+   +'<button class="btn" id="fReset" style="background:transparent;color:#fff">ล้างแบบฟอร์ม</button><button class="btn red" id="fSave">💾 บันทึกผล'+(done?'':' ('+(28-c.answered+(a?18-a.answered:0))+' ข้อค้าง)')+'</button>';
+}
+/* form events */
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#p-form')) return;
+  const b=e.target.closest('button,[data-tog]'); if(!b) return;
+  if(b.dataset.ans){ const [set,k,v]=b.dataset.ans.split('|'); const ans=set==='core'?F.scores:F.acls; if(ans[k]===v) delete ans[k]; else ans[k]=v; F.miss.delete(set+k);
+    const row=$('#it-'+set+'-'+k); const it=(set==='core'?CORE_BY:ACLS_BY)[k]; row.outerHTML=itemRow(set,it,ans); updateScoreBar(); return; }
+  if(b.dataset.tog){ const el=$('#db-'+b.dataset.tog); el.style.display=el.style.display==='none'?'':'none'; return; }
+  if(b.dataset.ec){ const [k,s]=b.dataset.ec.split('|'); const v=F.extra[k]||(F.extra[k]={}); v.status=v.status===s?'':s; if(v.status!=='ไม่ครบ') v.note=''; renderForm(); return; }
+  if(b.dataset.assdel){ F.assessors.splice(+b.dataset.assdel,1); if(!F.assessors.length) F.assessors.push({name:'',role:''}); renderForm(); return; }
+  if(b.id==='fAssAdd'){ F.assessors.push({name:'',role:''}); renderForm(); return; }
+  if(b.id==='fAssAll'){ F.assessors=ASSESSOR_TEAM.map(x=>({name:x.name,role:x.role})); renderForm(); return; }
+  if(b.id==='fReset'){ if(confirm('ล้างข้อมูลในแบบฟอร์มทั้งหมด?')){ newForm(); renderForm(); } return; }
+  if(b.id==='fCancel'){ newForm(); renderForm(); return; }
+  if(b.id==='fSave'){ saveForm(); return; }
+});
+document.addEventListener('change',e=>{
+  if(!e.target.closest('#p-form')) return; const t=e.target;
+  if(t.id==='fWard'){ F.wardSel=t.value; if(EXTRA_UNITS.indexOf(t.value)>=0) F.scope='EXTRA'; else if(F.scope==='EXTRA'&&t.value) F.scope='NSO'; if(!isAcls(fWard())){ F.scenario=''; } suggestRound(); renderForm(); }
+  else if(t.id==='fRound'){ F.round=+t.value; }
+  else if(t.id==='fScope'){ F.scope=t.value; suggestRound(); renderForm(); }
+  else if(t.id==='fDate'){ F.date=t.value; suggestRound(); renderForm(); }
+  else if(t.id==='fScn'){ F.scenario=t.value; applyAutoNA(); renderForm(); }
+  else if(t.dataset.assn!=null){ const a=F.assessors[+t.dataset.assn]; a.name=t.value; if(!a.role){ const x=ASSESSOR_TEAM.find(z=>z.name===t.value); if(x) a.role=x.role; } renderForm(); }
+  else if(t.dataset.assr!=null){ F.assessors[+t.dataset.assr].role=t.value; }
+});
+document.addEventListener('input',e=>{
+  if(!e.target.closest('#p-form')) return; const t=e.target;
+  if(t.id==='fTime') F.time=t.value; else if(t.id==='fStaff') F.staffCount=t.value; else if(t.id==='fRem') F.remedialDate=t.value;
+  else if(t.id==='fWardOther'){ F.wardOther=t.value; $('#fWardHint').innerHTML=wardHint(); }
+  else if(t.dataset.rm) F.remarks[t.dataset.rm]=t.value; else if(t.dataset.time) F.times[t.dataset.time]=t.value;
+  else if(t.dataset.ecn){ (F.extra[t.dataset.ecn]=F.extra[t.dataset.ecn]||{}).note=t.value; }
+});
+document.addEventListener('focusout',e=>{ if(e.target.id==='fWardOther'){ suggestRound(); renderForm(); } });
+function saveForm(){
+  const ward=fWard(), acls=isAcls(ward), errs=[]; F.miss=new Set();
+  if(!F.date) errs.push('วันที่'); if(!ward) errs.push('หน่วยงาน');
+  const ass=F.assessors.filter(a=>a.name); if(!ass.length) errs.push('ผู้ประเมินอย่างน้อย 1 คน');
+  CORE_ITEMS.forEach(it=>{ if(!F.scores[it.k]) F.miss.add('core'+it.k); });
+  if(acls){ if(!F.scenario) errs.push('Scenario'); ACLS_ITEMS.forEach(it=>{ if(!F.acls[it.k]) F.miss.add('acls'+it.k); }); }
+  const bad=Object.entries(F.times).filter(([k,v])=>k!=='ccf'&&v!==''&&isNaN(parseMMSS(v)));
+  if(bad.length) errs.push('รูปแบบเวลา (ใช้ นาที:วินาที เช่น 1:45)');
+  if(errs.length||F.miss.size){ renderForm();
+    toast('⚠️ ยังไม่ครบ: '+errs.concat(F.miss.size?[F.miss.size+' ข้อที่ยังไม่ประเมิน (ไฮไลต์สีส้ม)']:[]).join(' · '));
+    const first=$('.item.miss')||$('#fWard'); if(first) first.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  const c=scoreSet(CORE_ITEMS,F.scores), a=acls?scoreSet(ACLS_ITEMS,F.acls):null;
+  const dg={}; [1,2,3,4,5].forEach(d=>dg[d]=c.doms[d].e);
+  const rec=Object.assign({},F.orig?cleanForCloud(F.orig):{},{
+    id:F.id||Date.now(), scope:F.scope, date:F.date, time:F.time, ward, group:unitGroup(ward),
+    assessors:ass, assessor:ass[0].name, role:ass[0].role, round:roundLabel(F.round), staffCount:String(F.staffCount||''), remedialDate:F.remedialDate||'',
+    extraChecks:F.extra, scores:Object.assign({},F.scores), domainGot:dg, got:c.e, pct:c.pct, criticalFailed:c.crit, naItems:c.naItems, effectiveTotal:c.m,
+    passed:c.pct>=PASS_MARK, remarks:Object.assign({d1:'',d2:'',d3:'',d4:'',d5:'',overall:''},F.remarks), formVersion:FORM_VERSION });
+  if(acls){ const ad={}; Object.keys(ACLS_DOMAINS).forEach(d=>ad[d]=a.doms[d].e);
+    rec.setting=unitSetting(ward); rec.scenario=F.scenario;
+    rec.acls={scores:Object.assign({},F.acls),got:a.e,effectiveTotal:a.m,pct:a.pct,criticalFailed:a.crit,naItems:a.naItems,domainGot:ad};
+    const tm={}; ['cpr','shock','iv','epi'].forEach(k=>{ const v=parseMMSS(F.times[k]); tm[k]=v==null?null:v; }); tm.ccf=F.times.ccf===''?null:+F.times.ccf; rec.times=tm;
+    rec.overallPassed=rec.passed&&a.pct>=PASS_MARK; }
+  else { delete rec.acls; delete rec.scenario; delete rec.setting; delete rec.times; delete rec.overallPassed; }
+  if(F.id) rec._editedAt=new Date().toISOString();
+  writeRec(rec).then(ok=>{ if(ok) toast('✅ บันทึกแล้ว — ทุกหน้าจออัปเดตทันที'); });
+  newForm(); renderForm(); showRec(String(rec.id));
+}
+function editRec(r){
+  newForm(); F.id=r.id; F.orig=r; F.date=r.date||''; F.time=r.time||''; F.round=rRound(r); F.staffCount=r.staffCount||''; F.scope=scopeOf(r); F.remedialDate=r.remedialDate||'';
+  const all=CCD_UNITS.map(u=>u.n).concat(IPD_UNITS,OPD_UNITS,PED_CRITICAL,EXTRA_UNITS); const cw=canonUnit(r.ward);
+  if(all.indexOf(cw)>=0) F.wardSel=cw; else if(all.indexOf(r.ward)>=0) F.wardSel=r.ward; else { F.wardSel='__other'; F.wardOther=r.ward||''; }
+  F.assessors=(r.assessors&&r.assessors.length?r.assessors:[{name:r.assessor||'',role:r.role||''}]).map(a=>({name:a.name||'',role:a.role||''}));
+  F.scores=Object.assign({},r.scores||{}); F.acls=Object.assign({},(r.acls&&r.acls.scores)||{}); F.scenario=r.scenario||''; F._autoB3=autoNA();
+  const t=r.times||{}; F.times={cpr:t.cpr==null?'':mmss(t.cpr),shock:t.shock==null?'':mmss(t.shock),iv:t.iv==null?'':mmss(t.iv),epi:t.epi==null?'':mmss(t.epi),ccf:t.ccf==null?'':t.ccf};
+  F.extra=JSON.parse(JSON.stringify(r.extraChecks||{})); F.remarks=Object.assign({},r.remarks||{});
+  if(!Object.keys(F.scores).length) toast('รายการนี้ไม่มีผลรายข้อ — กรุณาประเมินรายข้อใหม่ก่อนบันทึก');
+  switchTab('form');
+}
+
+/* ================================================================
+   TAB: GUIDE (Checklist & คู่มือ — printable)
+   ================================================================ */
+function renderGuide(){
+  const box='<span class="box3"></span>';
+  const itemTable=(items,doms,isCore)=>{ let h='<table><thead><tr><th style="width:40px">ข้อ</th><th>รายการประเมิน</th><th style="width:26%">เกณฑ์ผ่าน / ไม่ผ่าน</th>'+(isCore?'<th style="width:22%">การปรับใช้ใน Critical Care</th>':'')+'<th style="width:72px" class="c">ผ่าน&nbsp;ไม่ผ่าน&nbsp;N/A</th></tr></thead><tbody>'; let last='';
+    items.forEach(it=>{ if(it.d!==last){ last=it.d; const d=doms[it.d]; h+='<tr><td colspan="'+(isCore?5:4)+'" style="background:#F1F5F9;font-weight:700;color:'+d.color+'">'+(isCore?d.code+' — '+esc(d.th)+' ('+esc(d.en)+')':'ACLS '+it.d+' — '+esc(d.th))+'</td></tr>'; }
+      h+='<tr><td><b>'+it.no+'</b></td><td>'+esc(it.t)+(it.c?' <span class="crit">★</span>':'')+(it.na==='lt3shock'?'<br><span class="small muted">N/A อัตโนมัติเมื่อ scenario ไม่ถึงช็อกครั้งที่ 3 และไม่ใช่ Torsades</span>':'')+'</td><td class="small">✔ '+esc(it.pass)+'<br>✖ '+esc(it.fail)+'</td>'+(isCore?'<td class="small">'+esc(it.ccd||'—')+'</td>':'')+'<td class="c">'+box+' '+box+' '+(it.c?'<span class="muted">–</span>':box)+'</td></tr>'; });
+    return h+'</tbody></table>'; };
+  let h='<div class="guide"><div class="row no-print" style="justify-content:flex-end;gap:8px"><button class="btn pri" onclick="printGuide()">🖨 พิมพ์ / บันทึก PDF</button></div>'
+  +'<h2>Checklist การประเมิน Code 8 Drill — Critical Care (Core 28 + ACLS Module 18)</h2><p class="muted">ร่างสำหรับพิจารณา · '+FORM_VERSION+' · อ้างอิง AHA Guidelines 2025</p>'
+  +'<h3>1. หลักการความยุติธรรม (เทียบ OPD / IPD / CCD ได้)</h3><ul>'
+  +'<li><b>วัดสิ่งเดียวกันด้วยเกณฑ์เดียวกัน</b> — Core 28 ข้อ ใช้กับทุกหน่วยงาน ข้อเดิม เกณฑ์เดิม คะแนนเดิม จึงเทียบข้ามกลุ่มได้</li>'
+  +'<li><b>ส่วนที่คาดหวังเพิ่มวัดแยก</b> — ACLS Module 18 ข้อ ใช้เฉพาะ 10 หน่วย Critical Care รายงานแยก ไม่นำไปรวมกับคะแนน Core</li>'
+  +'<li><b>นิยามตาม “หน้าที่” ไม่ใช่ “อุปกรณ์”</b> — เช่น Defib พร้อมใน 2 นาที ใช้ AED หรือ Manual mode ก็ได้ ทีม Aviation 2–3 คนผ่านเมื่อหน้าที่ครบ</li>'
+  +'<li><b>ทุก scenario เริ่มด้วย VF/pVT</b> — ทำให้ข้อ Core เรื่องการช็อกประเมินได้ครบเหมือน OPD/IPD แล้วจึงเปลี่ยนเป็น PEA ตามสาเหตุใน scenario</li>'
+  +'<li><b>ข้อ ★ Critical ห้าม N/A</b> · N/A อัตโนมัติกำหนดล่วงหน้าตาม scenario เท่านั้น ผู้ประเมินไม่ตัดสินเองหน้างาน</li>'
+  +'<li><b>ผู้ประเมิน 2 คน</b> อย่างน้อย 1 คนมาจากต่างหน่วย ใช้ CPR feedback device และจับเวลาจาก T0 เดียวกัน · อนุญาตให้ใช้ cognitive aid (AHA 2025)</li>'
+  +'<li><b>ข้อที่ขึ้นกับการตัดสินใจของแพทย์</b> (สั่งยา, intubate) ประเมินพยาบาลที่การเตรียมล่วงหน้าและ closed-loop ไม่ใช่ที่การตัดสินใจ</li></ul>'
+  +'<h3>2. เกณฑ์การให้คะแนน</h3><table><tbody>'
+  +'<tr><th style="width:28%">คะแนนรายข้อ</th><td>ผ่าน = 4 · ไม่ผ่าน = 0 · N/A ไม่นำมาคิด (ลดคะแนนเต็ม)</td></tr>'
+  +'<tr><th>Core 28 ข้อ</th><td>เต็ม 112 · ผ่านเมื่อ ≥ 80% · ใช้กับทุกหน่วยงาน</td></tr>'
+  +'<tr><th>ACLS Module 18 ข้อ</th><td>เต็ม 72 · ผ่านเมื่อ ≥ 80% · เฉพาะ Critical Care</td></tr>'
+  +'<tr><th>ผลรวมของหน่วย Critical Care</th><td>ต้องผ่าน <b>ทั้ง</b> Core และ ACLS Module · ไม่ผ่านส่วนใดส่วนหนึ่ง → นัดซ้อมซ่อม</td></tr>'
+  +'<tr><th>ข้อ ★ Critical</th><td>Core 15 ข้อ + ACLS 5 ข้อ — ข้อที่พลาดถือเป็นประเด็นต้องพัฒนาและต้อง debrief ทุกครั้ง (เกณฑ์ผ่านใช้ร้อยละตามระบบปี 2569)</td></tr>'
+  +'<tr><th>การซ้อมซ่อม</th><td>ครั้งที่ 2 เมื่อไม่ผ่านครั้งที่ 1 · ครั้งที่ 3 เมื่อไม่ผ่านครั้งที่ 2 · ผลสุดท้าย = ครั้งล่าสุด · นับรอบใหม่ทุกปี</td></tr>'
+  +'<tr><th>KPI Score</th><td>5 ผ่านครั้งแรก · 4 ผ่านครั้งที่ 2 · 3 ผ่านครั้งที่ 3 · 2 ครั้งที่ 3 ไม่ผ่าน · 1 ไม่ผ่านครั้งแรกและไม่ซ้อมซ้ำ</td></tr></tbody></table>'
+  +'<h3>3. หน่วยงาน Critical Care และ Scenario ที่แนะนำ</h3><table><thead><tr><th>Setting</th><th>หน่วยงาน</th><th>Scenario ที่แนะนำ</th></tr></thead><tbody>'
+  +Object.keys(SETTINGS).map(k=>'<tr><td><b>'+SETTINGS[k]+'</b></td><td>'+CCD_UNITS.filter(u=>u.set===k).map(u=>u.n).join(', ')+'</td><td>'+SCENARIOS.filter(s=>s.set===k||(k==='CCU'&&s.set==='ICU')).map(s=>s.k).join(', ')+'</td></tr>').join('')+'</tbody></table>'
+  +'<h3>4. Scenario Bank (10 scenario · ทุกเรื่องเริ่มด้วย VF/pVT)</h3><table><thead><tr><th style="width:62px">รหัส</th><th>Scenario</th><th>ลำดับเหตุการณ์ (สคริปต์มาตรฐาน)</th><th class="c" style="width:52px">ช็อก</th><th style="width:120px">ACLS B3</th></tr></thead><tbody>'
+  +SCENARIOS.map(s=>'<tr><td style="white-space:nowrap"><b>'+s.k+'</b></td><td>'+esc(s.t)+'</td><td class="small">'+esc(s.path)+'</td><td class="c">'+s.shocks+'</td><td class="small">'+(s.tdp?'ประเมิน (MgSO₄)':s.shocks>=3?'ประเมิน (Amiodarone/Lidocaine)':'N/A อัตโนมัติ')+'</td></tr>').join('')+'</tbody></table>'
+  +'<h3>5. Core 28 ข้อ (ทุกหน่วยงาน) พร้อมการปรับใช้ใน Critical Care</h3>'+itemTable(CORE_ITEMS,CORE_DOMAINS,true)
+  +'<h3>6. ACLS Module 18 ข้อ (เฉพาะ Critical Care)</h3>'+itemTable(ACLS_ITEMS,ACLS_DOMAINS,false)
+  +'<h3>7. เวลามาตรฐานที่บันทึก (จาก T0 = ผู้ป่วยหมดสติ)</h3><table><tbody><tr><th>เริ่มกดหน้าอก</th><td>เป้าหมาย ≤ 10 วินาทีหลังยืนยันว่าไม่มีชีพจร</td></tr><tr><th>Shock แรก</th><td>≤ 2 นาที (shockable rhythm)</td></tr><tr><th>IV / IO</th><td>≤ 5 นาที</td></tr><tr><th>Epinephrine แรก</th><td>VF/pVT หลังช็อกครั้งที่ 2 · PEA/Asystole ทันทีที่มีเส้น</td></tr><tr><th>CCF</th><td>≥ 80% จาก CPR feedback device</td></tr></tbody></table>'
+  +'<h3>8. ขั้นตอนผู้ประเมิน</h3><table><thead><tr><th>ก่อนซ้อม</th><th>ระหว่างซ้อม</th><th>หลังซ้อม (Debriefing)</th></tr></thead><tbody><tr><td class="small">• เลือก scenario ตามตารางหมุนเวียน<br>• ทบทวนข้อ ★ Critical และ N/A อัตโนมัติ<br>• เตรียม CPR feedback device และนาฬิกาจับเวลา<br>• ตกลง T0 กับผู้ประเมินร่วม</td><td class="small">• บันทึกทันที ไม่รอจำ<br>• จับเวลาตามข้อ 7<br>• ห้ามบอกใบ้<br>• ทำตามสคริปต์ scenario เดียวกันทุกหน่วย</td><td class="small">• Plus–Delta เริ่มจากจุดแข็ง<br>• ชี้แจงข้อ ★ ที่พลาดพร้อมเหตุผลทางคลินิก<br>• กำหนดวันซ้อมซ่อมทันทีถ้าไม่ผ่าน<br>• บันทึกผลลงระบบภายในวันเดียวกัน</td></tr></tbody></table>'
+  +'<p class="small muted" style="margin-top:16px">จัดทำโดย ฝ่ายวิชาการพยาบาล และ Clinical Nurse Educator โรงพยาบาลกรุงเทพ สำนักงานใหญ่</p></div>';
+  $('#p-guide').innerHTML=h;
+}
+function printGuide(){ printHTML('Checklist Code 8 Drill — Critical Care',$('#p-guide .guide').innerHTML.replace(/<div class="row no-print"[\s\S]*?<\/div>/,'')); }
+
+/* ================================================================
+   boot & routing
+   ================================================================ */
+const RENDER={overview:renderOverview,ccd:renderCCD,form:renderForm,units:renderUnits,items:renderItems,data:renderData,guide:renderGuide};
+function switchTab(k){ S.tab=k; saveUI(); $$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===k)); $$('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+k)); renderTab(); window.scrollTo({top:0}); }
+function renderTab(){ try{ RENDER[S.tab](); }catch(err){ console.error(err); $('#p-'+S.tab).innerHTML='<div class="card note warn">เกิดข้อผิดพลาดในการแสดงผล: '+esc(err.message)+'</div>'; } }
+function fillYears(){ const ys=yearsAvail(); if(S.year==null||ys.indexOf(S.year)<0){ const withData=ys.filter(y=>S.all.some(r=>scopeOf(r)===S.scope&&rYear(r)===y)); S.year=withData[0]||ys[0]; }
+  $('#selYear').innerHTML=ys.map(y=>'<option value="'+y+'"'+(y===S.year?' selected':'')+'>'+BE(y)+'</option>').join(''); }
+function onData(){ fillYears(); setNet(); if(S.tab!=='form') renderTab(); else { const h=$('#fWardHint'); if(h) h.innerHTML=wardHint(); } }
+$('#tabs').addEventListener('click',e=>{ const b=e.target.closest('.tab'); if(b) switchTab(b.dataset.tab); });
+$('#selYear').addEventListener('change',e=>{ S.year=+e.target.value; renderTab(); });
+$('#segScope').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; S.scope=b.dataset.v; saveUI(); $$('#segScope button').forEach(x=>x.classList.toggle('on',x===b)); S.year=null; fillYears(); renderTab(); });
+$('#net').addEventListener('click',()=>flushQueue(true));
+window.addEventListener('online',()=>{ setNet(); flushQueue(false); }); window.addEventListener('offline',setNet);
+setInterval(()=>{ if(navigator.onLine&&lsGet(LS.queue,[]).length) flushQueue(false); },60000);
+(function boot(){
+  $('#fv').textContent=FORM_VERSION;
+  $$('#segScope button').forEach(x=>x.classList.toggle('on',x.dataset.v===S.scope));
+  const c=lsGet(LS.cache,null); if(c&&c.recs){ S.all=c.recs; overlayQueue(); }
+  newForm(); fillYears(); setNet(); switchTab(RENDER[S.tab]?S.tab:'overview');
+  initFB();
+})();
+</script>
+</body>
+</html>
