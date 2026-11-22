@@ -534,13 +534,19 @@ const ACLS_ITEMS = [
   pass:'เริ่มครบตามรายการภายใน 10 นาทีหลัง ROSC', fail:'ขาดองค์ประกอบสำคัญ'}
 ];
 
-/* ---------- Scenario bank (ทุก scenario เริ่มด้วย VF/pVT เพื่อให้ Core 28 ข้อใช้ได้ครบเหมือน OPD/IPD)
+/* ---------- Scenario bank (ทุก scenario มีช่วง Shockable VF/pVT อย่างน้อย 1 ช่วง เพื่อให้ข้อ Core เรื่องการช็อกประเมินได้ครบเหมือน OPD/IPD)
    แต่ละ setting มี 2 แบบ: Shockable ล้วน (ช็อก ×3 + antiarrhythmic) และ Shockable → Non-shockable (PEA/Asystole) ---------- */
 const SCENARIOS = [
  {k:'ICU-01',set:'ICU',shocks:3,t:'VF ในผู้ป่วย AKI ใส่เครื่องช่วยหายใจ — Hyperkalemia',
   path:'VF → ช็อก ×3 → Amiodarone → แก้ K⁺ สูง (Calcium, Insulin + Glucose ตามแผนการรักษา) → ROSC'},
  {k:'ICU-02',set:'ICU',shocks:2,t:'VF → PEA จากท่อช่วยหายใจเลื่อน (Hypoxia)',
   path:'VF → ช็อก ×2 → PEA → ตรวจ DOPE พบท่อเลื่อน → ใส่ท่อใหม่ ยืนยันด้วย ETCO₂ → ROSC'},
+ {k:'ICU-03',set:'ICU',shocks:3,t:'Septic shock on vasopressor → VF จาก Hypokalemia',
+  path:'VF → ช็อก ×3 → Amiodarone → ตรวจ electrolyte/ABG พบ K⁺ ต่ำ → ให้ K⁺ ตามแผนการรักษา → ROSC → ทบทวน vasopressor / MAP ≥ 65'},
+ {k:'ICU-04',set:'ICU',shocks:1,t:'Massive pulmonary embolism หลังผ่าตัด (Thrombosis — pulmonary)',
+  path:'PEA → Epinephrine 1 mg ทันที → POCUS พบ RV โต → เตรียม thrombolysis ตามคำสั่งแพทย์ → เปลี่ยนเป็น VF → ช็อก ×1 → ROSC'},
+ {k:'ICU-05',set:'ICU',shocks:1,t:'ผู้ป่วย ARDS ใส่เครื่องช่วยหายใจ → Tension pneumothorax',
+  path:'Peak pressure สูง + SpO₂ ตก → PEA → ตรวจ DOPE พบ tension pneumothorax → Needle decompression → VF → ช็อก ×1 → ROSC'},
  {k:'CCU-01',set:'CCU',shocks:3,t:'pVT หลัง Anterior STEMI (Coronary thrombosis)',
   path:'pVT → ช็อก ×3 → Amiodarone 300 mg → ROSC → 12-lead ECG พบ STE → เตรียม Cath Lab'},
  {k:'CCU-02',set:'CCU',shocks:1,t:'VF หลังทำ PCI → PEA จาก Cardiac tamponade',
@@ -549,6 +555,8 @@ const SCENARIOS = [
   path:'VF → ช็อก ×2 → PEA → แจ้งศัลยแพทย์ห้ามเลือด + Massive transfusion → ROSC'},
  {k:'OR-02',set:'OR',shocks:3,t:'VF ระหว่างผ่าตัดภายใต้ GA จากกล้ามเนื้อหัวใจขาดเลือด (Coronary thrombosis)',
   path:'VF → แจ้งศัลยแพทย์หยุดผ่าตัด → ช็อก ×3 → Amiodarone 300 mg → ROSC → 12-lead ECG → ปรึกษาแพทย์โรคหัวใจ'},
+ {k:'OR-03',set:'OR',shocks:1,t:'PACU: หลังดมยาสลบไม่ตื่น ทางเดินหายใจอุดกั้น → Hypoxic arrest',
+  path:'ไม่ตื่น + airway อุดกั้น / residual neuromuscular block → SpO₂ ตก → Bradycardia → PEA → เปิดทางเดินหายใจ + BVM O₂ 100% + เตรียมใส่ท่อ + Epinephrine → VF → ช็อก ×1 → พิจารณายา reversal ตามคำสั่งวิสัญญีแพทย์ → ROSC'},
  {k:'ER-01',set:'ER',shocks:3,t:'VF นอกโรงพยาบาล รับจาก EMS พร้อม Mechanical CPR',
   path:'Handover ขณะ CPR → ย้ายเครื่อง mechanical CPR → VF → ช็อก ×3 → Amiodarone → ROSC → 12-lead พบ STE'},
  {k:'ER-02',set:'ER',shocks:1,t:'ผู้ป่วยบาดเจ็บ: VF → PEA จาก Tension pneumothorax',
@@ -665,7 +673,7 @@ const roundLabel=n=>n===1?'ครั้งที่ 1 (ปกติ)':'ครั
 const CORE_BY=Object.fromEntries(CORE_ITEMS.map(i=>[i.k,i]));
 const ACLS_BY=Object.fromEntries(ACLS_ITEMS.map(i=>[i.k,i]));
 const SCN_BY=Object.fromEntries(SCENARIOS.map(s=>[s.k,s]));
-const algoOf=s=>/PEA|Asystole/.test(s.path)?'Shockable → Non-shockable':'Shockable';
+const algoOf=s=>{ const p=s.path, ns=p.search(/PEA|Asystole/), sh=p.search(/VF|pVT/); return ns<0?'Shockable':sh>=0&&sh<ns?'Shockable → Non-shockable':'Non-shockable → Shockable'; };
 const DOM_MAX={1:20,2:20,3:32,4:16,5:24};
 const ACLS_N=ACLS_ITEMS.filter(i=>!i.trial||TRIAL_COUNTED).length, TRIAL_N=ACLS_ITEMS.length-ACLS_N;
 const trialBadge=it=>it.trial&&!TRIAL_COUNTED?' <span class="badge b-mute" title="ข้อพิจารณาตามแนวปฏิบัติใหม่ — บันทึกผลได้แต่ยังไม่นับคะแนน">ข้อพิจารณา · ไม่นับคะแนน</span>':'';
@@ -1016,7 +1024,7 @@ function renderUnits(){
 }
 document.addEventListener('input',e=>{ if(e.target.id==='unitQ'){ S.unitQ=e.target.value; const p=e.target.selectionStart; renderUnits(); const n=$('#unitQ'); n.focus(); n.setSelectionRange(p,p); } });
 document.addEventListener('change',e=>{ if(e.target.id==='unitSort'){ S.unitSort=e.target.value; renderUnits(); } if(e.target.id==='unitUndr'){ S.showUndrilled=e.target.checked; renderUnits(); } });
-document.addEventListener('click',e=>{ const u=e.target.closest('[data-unit]'); if(u) showUnit(u.dataset.unit); const r=e.target.closest('[data-rec]'); if(r&&!e.target.closest('button')) showRec(r.dataset.rec); });
+document.addEventListener('click',e=>{ const u=e.target.closest('[data-unit]'); if(u) showUnit(u.dataset.unit); const r=e.target.closest('[data-rec]'), btn=e.target.closest('button'); if(r&&(!btn||btn===r)) showRec(r.dataset.rec); });
 function showUnit(k){
   const recs=S.all.filter(r=>scopeOf(r)===S.scope&&wkey(canonUnit(r.ward))===k).sort((a,b)=>((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
   if(!recs.length){ toast('หน่วยงานนี้ยังไม่มีข้อมูลการซ้อม'); return; }
@@ -1395,7 +1403,7 @@ function renderForm(){
     const sc=SCN_BY[F.scenario];
     const rec=SCENARIOS.filter(s=>s.set===set||(set==='CCU'&&s.set==='ICU')), oth=SCENARIOS.filter(s=>rec.indexOf(s)<0);
     const o=s=>'<option value="'+s.k+'"'+(F.scenario===s.k?' selected':'')+'>'+s.k+' · '+esc(s.t)+' ['+algoOf(s)+']</option>';
-    h+='<div class="scn"><div class="form-grid"><div class="fld" style="grid-column:span 2"><label for="fScn">Scenario (ทุก scenario เริ่มด้วย VF/pVT)</label><select class="inp" id="fScn"><option value="">— เลือก scenario —</option><optgroup label="แนะนำสำหรับ '+SETTINGS[set]+'">'+rec.map(o).join('')+'</optgroup><optgroup label="อื่น ๆ">'+oth.map(o).join('')+'</optgroup></select>'
+    h+='<div class="scn"><div class="form-grid"><div class="fld" style="grid-column:span 2"><label for="fScn">Scenario (ทุก scenario มีช่วง VF/pVT)</label><select class="inp" id="fScn"><option value="">— เลือก scenario —</option><optgroup label="แนะนำสำหรับ '+SETTINGS[set]+'">'+rec.map(o).join('')+'</optgroup><optgroup label="อื่น ๆ">'+oth.map(o).join('')+'</optgroup></select>'
      +(sc?'<div class="hint"><b>ลำดับเหตุการณ์:</b> '+esc(sc.path)+'</div>':'<div class="hint">หมุนเวียน scenario ให้แต่ละหน่วยครบตลอดปี</div>')+'</div>'
      +'<div class="fld" style="grid-column:span 2"><label>เวลามาตรฐาน (นาที:วินาที นับจาก T0 ผู้ป่วยหมดสติ) — ไม่บังคับ</label><div class="row" style="gap:6px">'
      +[['cpr','เริ่มกด'],['shock','Shock แรก'],['iv','IV/IO'],['epi','Epi แรก']].map(x=>'<input type="text" inputmode="numeric" data-time="'+x[0]+'" placeholder="'+x[1]+' 0:00" value="'+esc(F.times[x[0]])+'" style="width:110px" aria-label="'+x[1]+'">').join('')
@@ -1526,7 +1534,7 @@ function renderGuide(){
   +'<li><b>วัดสิ่งเดียวกันด้วยเกณฑ์เดียวกัน</b> — Core 28 ข้อ ใช้กับทุกหน่วยงาน ข้อเดิม เกณฑ์เดิม คะแนนเดิม จึงเทียบข้ามกลุ่มได้</li>'
   +'<li><b>ส่วนที่คาดหวังเพิ่มวัดแยก</b> — ACLS Module '+ACLS_N+' ข้อ ใช้เฉพาะ 10 หน่วย Critical Care รายงานแยก ไม่นำไปรวมกับคะแนน Core</li>'
   +'<li><b>นิยามตาม “หน้าที่” ไม่ใช่ “อุปกรณ์”</b> — เช่น Defib พร้อมใน 2 นาที ใช้ AED หรือ Manual mode ก็ได้ ทีม Aviation 2–3 คนผ่านเมื่อหน้าที่ครบ</li>'
-  +'<li><b>ทุก scenario เริ่มด้วย VF/pVT</b> — ทำให้ข้อ Core เรื่องการช็อกประเมินได้ครบเหมือน OPD/IPD แล้วจึงเปลี่ยนเป็น PEA ตามสาเหตุใน scenario</li>'
+  +'<li><b>ทุก scenario มีช่วง VF/pVT อย่างน้อย 1 ช่วง</b> — ข้อ Core เรื่องการช็อกจึงประเมินได้ครบเหมือน OPD/IPD · scenario ที่สาเหตุจริงเป็น PEA (เช่น Hypoxic arrest, Massive PE) จะเปลี่ยนเป็น VF ภายหลังตามสคริปต์</li>'
   +'<li><b>ข้อ ★ Critical ห้าม N/A</b> · N/A อัตโนมัติกำหนดล่วงหน้าตาม scenario เท่านั้น ผู้ประเมินไม่ตัดสินเองหน้างาน</li>'
   +'<li><b>ผู้ประเมิน 2 คน</b> อย่างน้อย 1 คนมาจากต่างหน่วย ใช้ CPR feedback device และจับเวลาจาก T0 เดียวกัน · อนุญาตให้ใช้ cognitive aid (AHA 2025)</li>'
   +'<li><b>ขอบเขต ACLS Module</b> — '+esc(ACLS_SCOPE)+'</li>'
@@ -1541,7 +1549,7 @@ function renderGuide(){
   +'<tr><th>KPI Score</th><td>5 ผ่านครั้งแรก · 4 ผ่านครั้งที่ 2 · 3 ผ่านครั้งที่ 3 · 2 ครั้งที่ 3 ไม่ผ่าน · 1 ไม่ผ่านครั้งแรกและไม่ซ้อมซ้ำ</td></tr></tbody></table>'
   +'<h3>3. หน่วยงาน Critical Care และ Scenario ที่แนะนำ</h3><table><thead><tr><th>Setting</th><th>หน่วยงาน</th><th>Scenario ที่แนะนำ</th></tr></thead><tbody>'
   +Object.keys(SETTINGS).map(k=>'<tr><td><b>'+SETTINGS[k]+'</b></td><td>'+CCD_UNITS.filter(u=>u.set===k).map(u=>u.n).join(', ')+'</td><td>'+SCENARIOS.filter(s=>s.set===k||(k==='CCU'&&s.set==='ICU')).map(s=>s.k).join(', ')+'</td></tr>').join('')+'</tbody></table>'
-  +'<h3>4. Scenario Bank (10 scenario · ทุกเรื่องเริ่มด้วย VF/pVT · แต่ละ setting มีทั้งแบบ Shockable ล้วน และ Shockable → Non-shockable)</h3><table><thead><tr><th style="width:62px">รหัส</th><th>Scenario</th><th>ลำดับเหตุการณ์ (สคริปต์มาตรฐาน)</th><th style="width:118px">Algorithm</th><th class="c" style="width:46px">ช็อก</th><th style="width:110px">ACLS B3</th></tr></thead><tbody>'
+  +'<h3>4. Scenario Bank ('+SCENARIOS.length+' scenario · ทุกเรื่องมีช่วง VF/pVT · แต่ละ setting มีทั้งแบบ Shockable ล้วน และแบบที่มี PEA/Asystole)</h3><table><thead><tr><th style="width:62px">รหัส</th><th>Scenario</th><th>ลำดับเหตุการณ์ (สคริปต์มาตรฐาน)</th><th style="width:118px">Algorithm</th><th class="c" style="width:46px">ช็อก</th><th style="width:110px">ACLS B3</th></tr></thead><tbody>'
   +SCENARIOS.map(s=>'<tr><td style="white-space:nowrap"><b>'+s.k+'</b></td><td>'+esc(s.t)+'</td><td class="small">'+esc(s.path)+'</td><td class="small">'+algoOf(s)+'</td><td class="c">'+s.shocks+'</td><td class="small">'+(s.shocks>=3?'ประเมิน (Amiodarone/Lidocaine)':'N/A อัตโนมัติ')+'</td></tr>').join('')+'</tbody></table>'
   +'<h3>5. Core 28 ข้อ (ทุกหน่วยงาน) พร้อมการปรับใช้ใน Critical Care</h3>'+itemTable(CORE_ITEMS,CORE_DOMAINS,true)
   +'<h3>6. ACLS Module '+ACLS_N+' ข้อ (เฉพาะ Critical Care)</h3><p class="note" style="margin:4px 0 8px">ขอบเขต: '+esc(ACLS_SCOPE)+(TRIAL_N?'<br><b>ข้อพิจารณา '+TRIAL_N+' ข้อ (A5 Pre-check, A6 Pre-charge)</b> — บันทึกผลได้และเลือก N/A ได้ แต่ยังไม่นับคะแนน เพื่อเก็บข้อมูลประกอบการพิจารณา · ILCOR อยู่ระหว่างทบทวนหลักฐานเรื่อง anticipatory charging (2025)':'')+'</p>'+itemTable(ACLS_ITEMS,ACLS_DOMAINS,false)
